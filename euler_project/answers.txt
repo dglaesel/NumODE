@@ -1,0 +1,20 @@
+(b) Parameter study – qualitative long-term behaviour vs q:
+For each positive q the trajectories settle to the stable equilibrium sqrt(q).
+For q = 0.1, 0.5, 1, and 2 the solution starting at x0 = 2 decays monotonically
+towards the smaller steady states, while q = 10 and q = 20 drive the solution
+above its initial value before saturating near 3.16 and 4.47, respectively.
+
+(c, q=10) Method comparison – Euler vs LSODA:
+The adaptive LSODA reference and Euler with τ = 0.01 overlap almost exactly;
+the coarse Euler step τ = 0.1 shows visible phase lag and an undershoot of the
+long-term plateau before slowly converging towards the reference equilibrium.
+
+(c, q=0.1) Method comparison – Euler vs LSODA:
+All methods agree on the slow decay to the small equilibrium, but the τ = 0.1
+Euler curve damps noticeably faster in the transient phase before aligning with
+the LSODA and τ = 0.01 trajectories after a few time units.
+
+(d) Lorenz sensitivity – describe whether/when trajectories diverge:
+The two Lorenz trajectories track each other for roughly the first five time units
+before diverging to different lobes; beyond t ≈ 6 their paths and phase remain
+uncorrelated, demonstrating sensitive dependence on the perturbed x₂(0) value.
