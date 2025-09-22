@@ -1,0 +1,12 @@
+(b) Parameter study – qualitative long-term behaviour vs q:
+
+
+(c, q=10) Method comparison – Euler vs LSODA:
+
+
+(c, q=0.1) Method comparison – Euler vs LSODA:
+
+
+(d) Lorenz sensitivity – describe whether/when trajectories diverge:
+
+
