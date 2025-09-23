@@ -1,28 +1,40 @@
-# NumODE
+# NumODE – Explicit Euler for ODEs
+Assignment 1
 
-This repository implements assignment 2.3 (Sheet 2) — Explicit Euler method.
+## 📦 Setup (Windows, PowerShell)
+1. **Clone the repository**
+   ```powershell
+   git clone https://github.com/dglaesel/NumODE.git
+   cd NumODE
+   ```
+2. **Create a virtual environment**  
+   Use the latest installed Python 3.x (check with `py --list`):
+   ```powershell
+   py -3 -m venv .venv
+   ```
+3. **Activate the environment**  
+   If you get a security error about `Activate.ps1`, run once:
+   ```powershell
+   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+   ```
+   Then activate:
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+4. **Install dependencies**
+   ```powershell
+   pip install -r requirements.txt
+   ```
+5. **Run experiments**
+   ```powershell
+   python -m euler_project.experiments
+   ```
 
-## Setup
+## 📂 Output
+- Figures are saved in: `euler_project/figs/`  
+- Answer template is generated/updated in: `euler_project/answers.txt`
 
-Create and activate a virtual environment (for example, in the repository root)
-before installing the dependencies.
-
-### Windows (PowerShell)
-
-```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-## Running the experiments
-
-Run the orchestrating module from an activated environment:
-
-```bash
-python -m euler_project.experiments
-```
-
-This command refreshes the required PNG figures in `euler_project/figs/` and
-rewrites `euler_project/answers.txt` with a blank template for tasks (b)–(d)
-so you can record your own observations.
+## 🔧 Notes
+- Tested with **Python 3.13**, but should work with any Python ≥3.10.  
+- To see your installed Python versions: `py --list`  
+- To deactivate the virtual environment: `deactivate
