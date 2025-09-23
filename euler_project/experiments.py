@@ -103,8 +103,8 @@ def run_lorenz_sensitivity() -> Figure:
     return fig
 
 
-def write_answers_template(dest_path: Path) -> None:
-    """Create a blank answer template for manual completion."""
+def write_answers_template_to(dest_path: Path) -> None:
+    """Create a blank answer template for manual completion at dest_path."""
 
     text = "\n".join(
         [
@@ -126,10 +126,11 @@ def write_answers_template(dest_path: Path) -> None:
 
 
 def _make_run_dirs() -> tuple[Path, Path]:
-    """Create a timestamped run directory with a figs subfolder.
+    """Create a timestamped run directory and its figs subfolder.
 
     Returns (run_dir, figs_dir).
     """
+
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = ensure_dir(PACKAGE_DIR / "runs" / ts)
     figs_dir = ensure_dir(run_dir / "figs")
@@ -161,22 +162,22 @@ def main() -> None:
     savefig(fig_q01, figs_dir / "compare_q01.png")
     savefig(fig_lorenz, figs_dir / "lorenz_sensitivity.png")
 
-    # Also save a combined PDF for convenience.
+    # Also save a combined PDF of all figures in the run root.
     pdf_path = run_dir / "all_plots.pdf"
     with PdfPages(pdf_path) as pdf:
         for fig in figures:
             fig.tight_layout()
             pdf.savefig(fig, bbox_inches="tight")
 
-    # Provide a blank answer template for manual completion, scoped to this run.
-    write_answers_template(run_dir / "answers.txt")
+    # Provide a blank answer template for manual completion.
+    write_answers_template_to(run_dir / "answers.txt")
 
     # Close figures after exporting to avoid resource warnings.
     for fig in figures:
         if plt.fignum_exists(fig.number):
             plt.close(fig)
 
-    # Print output location for convenience.
+    # Print output location for convenience when running from CLI.
     print(f"Saved run to: {run_dir}")
 
 
