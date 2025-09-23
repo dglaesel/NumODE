@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -23,7 +25,8 @@ from .problems import rhs_cubic, rhs_lorenz
 Array = np.ndarray
 
 PACKAGE_DIR = Path(__file__).resolve().parent
-FIGS_DIR = ensure_dir(PACKAGE_DIR / "figs")
+_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+FIGS_DIR = ensure_dir(PACKAGE_DIR / f"results_{_TIMESTAMP}")
 ANSWERS_PATH = PACKAGE_DIR / "answers.txt"
 
 
@@ -150,6 +153,12 @@ def main() -> None:
     savefig(fig_q10, FIGS_DIR / "compare_q10.png")
     savefig(fig_q01, FIGS_DIR / "compare_q01.png")
     savefig(fig_lorenz, FIGS_DIR / "lorenz_sensitivity.png")
+
+    pdf_path = FIGS_DIR / "all_plots.pdf"
+    with PdfPages(pdf_path) as pdf:
+        for fig in figures:
+            fig.tight_layout()
+            pdf.savefig(fig, bbox_inches="tight")
 
     # Provide a blank answer template for manual completion.
     write_answers_template()
