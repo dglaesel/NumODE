@@ -1,4 +1,4 @@
-"""Experiment runners for the explicit Euler project."""
+﻿"""Experiment runners for the explicit Euler project."""
 
 from __future__ import annotations
 
@@ -25,9 +25,6 @@ from .problems import rhs_cubic, rhs_lorenz
 Array = np.ndarray
 
 PACKAGE_DIR = Path(__file__).resolve().parent
-_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
-FIGS_DIR = ensure_dir(PACKAGE_DIR / f"results_{_TIMESTAMP}")
-ANSWERS_PATH = PACKAGE_DIR / "answers.txt"
 
 
 def run_parameter_study() -> Figure:
@@ -106,8 +103,8 @@ def run_lorenz_sensitivity() -> Figure:
     return fig
 
 
-def write_answers_template() -> None:
-    """Create a blank answer template for manual completion."""
+def write_answers_template_to(dest_path: Path) -> None:
+    """Create a blank answer template for manual completion at dest_path."""
 
     text = "\n".join(
         [
@@ -125,14 +122,25 @@ def write_answers_template() -> None:
             "",
         ]
     )
-    ANSWERS_PATH.write_text(text, encoding="utf-8")
+    dest_path.write_text(text, encoding="utf-8")
 
+
+def _make_run_dirs() -> tuple[Path, Path]:
+    """Create a timestamped run directory and its figs subfolder.
+
+    Returns (run_dir, figs_dir).
+    """
+
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_dir = ensure_dir(PACKAGE_DIR / "runs" / ts)
+    figs_dir = ensure_dir(run_dir / "figs")
+    return run_dir, figs_dir
 
 
 def main() -> None:
     """Run all experiments, export figures, and rewrite the answer summary."""
 
-    ensure_dir(FIGS_DIR)
+    run_dir, figs_dir = _make_run_dirs()
 
     figures: list[Figure] = []
 
@@ -148,25 +156,29 @@ def main() -> None:
     fig_lorenz = run_lorenz_sensitivity()
     figures.append(fig_lorenz)
 
-    # Save individual PNGs for convenience.
-    savefig(fig_param, FIGS_DIR / "param_sweep_cubic.png")
-    savefig(fig_q10, FIGS_DIR / "compare_q10.png")
-    savefig(fig_q01, FIGS_DIR / "compare_q01.png")
-    savefig(fig_lorenz, FIGS_DIR / "lorenz_sensitivity.png")
+    # Save individual PNGs for this run.
+    savefig(fig_param, figs_dir / "param_sweep_cubic.png")
+    savefig(fig_q10, figs_dir / "compare_q10.png")
+    savefig(fig_q01, figs_dir / "compare_q01.png")
+    savefig(fig_lorenz, figs_dir / "lorenz_sensitivity.png")
 
-    pdf_path = FIGS_DIR / "all_plots.pdf"
+    # Also save a combined PDF of all figures in the run root.
+    pdf_path = run_dir / "all_plots.pdf"
     with PdfPages(pdf_path) as pdf:
         for fig in figures:
             fig.tight_layout()
             pdf.savefig(fig, bbox_inches="tight")
 
     # Provide a blank answer template for manual completion.
-    write_answers_template()
+    write_answers_template_to(run_dir / "answers.txt")
 
     # Close figures after exporting to avoid resource warnings.
     for fig in figures:
         if plt.fignum_exists(fig.number):
             plt.close(fig)
+
+    # Print output location for convenience when running from CLI.
+    print(f"Saved run to: {run_dir}")
 
 
 if __name__ == "__main__":

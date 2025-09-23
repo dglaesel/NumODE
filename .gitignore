@@ -1,0 +1,11 @@
+﻿.venv/
+__pycache__/
+*.pyc
+.eager_resources/
+.DS_Store
+Thumbs.db
+
+# Project-specific generated outputs
+ euler_project/__pycache__/
+ euler_project/figs/*.png
+ euler_project/runs/

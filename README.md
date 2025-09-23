@@ -1,7 +1,7 @@
-# NumODE – Explicit Euler for ODEs
+﻿# NumODE â€“ Explicit Euler for ODEs
 Assignment 1
 
-## 📦 Setup (Windows, PowerShell)
+## ðŸ“¦ Setup (Windows, PowerShell)
 1. **Clone the repository**
    ```powershell
    git clone https://github.com/dglaesel/NumODE.git
@@ -30,11 +30,12 @@ Assignment 1
    python -m euler_project.experiments
    ```
 
-## 📂 Output
-- Figures are saved in: `euler_project/figs/`  
-- Answer template is generated/updated in: `euler_project/answers.txt`
+## ðŸ“‚ Output
+- Figures are saved in: `euler_project/runs/<YYYYMMDD-HHMMSS>/figs/`  
+- Answer template is generated/updated in: `euler_project/runs/<YYYYMMDD-HHMMSS>/answers.txt`
 
-## 🔧 Notes
-- Tested with **Python 3.13**, but should work with any Python ≥3.10.  
+## ðŸ”§ Notes
+- Tested with **Python 3.13**, but should work with any Python â‰¥3.10.  
 - To see your installed Python versions: `py --list`  
 - To deactivate the virtual environment: `deactivate
+
