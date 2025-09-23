@@ -17,6 +17,7 @@ from .plotting import (
     ensure_dir,
     plot_compare_methods,
     plot_lorenz_with_timecolor,
+    plot_lorenz_separation,
     plot_param_sweep,
     savefig,
 )
@@ -87,8 +88,11 @@ def run_method_comparison(q: float) -> Figure:
     return fig
 
 
-def run_lorenz_sensitivity() -> Figure:
-    """Simulate the Lorenz system for two nearby initial conditions."""
+def run_lorenz_sensitivity() -> tuple[Figure, Figure]:
+    """Simulate the Lorenz system for two nearby initial conditions.
+
+    Returns a tuple of figures: (3D trajectory figure, separation figure).
+    """
 
     tau = 0.001
     T = 10.0
@@ -99,8 +103,9 @@ def run_lorenz_sensitivity() -> Figure:
     t, X = explEuler(rhs_lorenz, x0, T, tau)
     t2, X2 = explEuler(rhs_lorenz, x0_perturbed, T, tau)
 
-    fig = plot_lorenz_with_timecolor(t, X, t2, X2)
-    return fig
+    fig3d = plot_lorenz_with_timecolor(t, X, t2, X2)
+    fig_sep = plot_lorenz_separation(t, X, X2)
+    return fig3d, fig_sep
 
 
 def write_answers_template_to(dest_path: Path) -> None:
@@ -153,20 +158,22 @@ def main() -> None:
     fig_q01 = run_method_comparison(0.1)
     figures.append(fig_q01)
 
-    fig_lorenz = run_lorenz_sensitivity()
+    fig_lorenz, fig_lorenz_sep = run_lorenz_sensitivity()
     figures.append(fig_lorenz)
+    figures.append(fig_lorenz_sep)
 
     # Save individual PNGs for this run.
     savefig(fig_param, figs_dir / "param_sweep_cubic.png")
     savefig(fig_q10, figs_dir / "compare_q10.png")
     savefig(fig_q01, figs_dir / "compare_q01.png")
     savefig(fig_lorenz, figs_dir / "lorenz_sensitivity.png")
+    savefig(fig_lorenz_sep, figs_dir / "lorenz_separation.png")
 
     # Also save a combined PDF of all figures in the run root.
     pdf_path = run_dir / "all_plots.pdf"
     with PdfPages(pdf_path) as pdf:
         for fig in figures:
-            fig.tight_layout()
+            # Avoid tight_layout here (3D axes are incompatible); rely on bbox_inches
             pdf.savefig(fig, bbox_inches="tight")
 
     # Provide a blank answer template for manual completion.

@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  # needed for 3D projection
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 mpl.rcParams.update(
     {
@@ -39,37 +38,49 @@ def ensure_dir(path: Path | str) -> Path:
 
 
 def savefig(fig: Figure, filepath: Path | str) -> None:
-    """Save a Matplotlib figure with tight layout."""
+    """Save a Matplotlib figure with sensible layout.
+
+    - Applies tight_layout only for 2D figures (3D axes can misbehave).
+    - Saves both PNG (300 dpi) and PDF (vector).
+    """
 
     p = Path(filepath)
-    fig.tight_layout()
-    # Always save PNG at 300 dpi
+    has_3d = any(getattr(ax, "name", "") == "3d" for ax in fig.axes)
+    if not has_3d:
+        try:
+            fig.tight_layout()
+        except Exception:
+            pass
     fig.savefig(p.with_suffix(".png"), dpi=300, bbox_inches="tight")
-    # Also save vector PDF
     fig.savefig(p.with_suffix(".pdf"), bbox_inches="tight")
 
 
 def plot_param_sweep(t: Array, trajectories: Sequence[Array], qs: Sequence[float]) -> Figure:
-    """Plot multiple trajectories from the cubic parameter sweep."""
+    """Plot trajectories from the cubic parameter sweep, with clean layout."""
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(9, 5))
     sorted_pairs = sorted(zip(trajectories, qs), key=lambda z: z[1])
     for X, q in sorted_pairs:
         ax.plot(t, X[:, 0], label=f"q = {q}", linewidth=DEFAULT_LW)
-        ax.axhline(np.sqrt(q), linestyle="--", linewidth=1.2, alpha=0.7, label="_nolegend_")
+        # subtle equilibrium guide (no legend entry)
+        ax.axhline(np.sqrt(q), color="0.6", linestyle="--", linewidth=1.0, alpha=0.4, label="_nolegend_")
     ax.set_xlabel("t")
     ax.set_ylabel("x(t)")
     ax.set_title("Cubic ODE parameter sweep (equilibria shown)")
     ax.grid(True)
-    ax.legend(title="Parameter", loc="center left", bbox_to_anchor=(1.02, 0.5))
-    fig.subplots_adjust(right=0.82)
-
-    iax = inset_axes(ax, width="38%", height="45%", loc="lower left", borderpad=1.1)
-    for X, _ in sorted_pairs:
-        iax.plot(t, X[:, 0])
-    iax.set_xlim(0, 1.0)
-    iax.grid(True, alpha=0.25)
-    mark_inset(ax, iax, loc1=3, loc2=1, fc="none", ec="0.5", alpha=0.6)
+    # Figure-level legend below the plot for clarity
+    handles, labels = ax.get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        title="Parameter",
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.038),
+        ncol=min(3, len(handles)),
+        frameon=True,
+    )
+    fig.add_artist(leg)
+    fig.subplots_adjust(right=0.95, left=0.12, top=0.9, bottom=0.22)
     return fig
 
 
@@ -84,24 +95,24 @@ def plot_compare_methods(
 ) -> Figure:
     """Create a comparison figure across numerical methods for a given q."""
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(9, 5))
     ax.plot(t_ref, x_ref[:, 0], label="LSODA", linewidth=DEFAULT_LW)
     ax.plot(
         t_euler_fine,
         x_euler_fine[:, 0],
-        label="Euler τ=0.01",
+        label=r"Euler $\tau$=0.01",
         linestyle="--",
         linewidth=DEFAULT_LW,
     )
     ax.plot(
         t_euler_coarse,
         x_euler_coarse[:, 0],
-        label="Euler τ=0.1",
+        label=r"Euler $\tau$=0.1",
         linestyle=":",
         linewidth=DEFAULT_LW,
     )
     y_eq = np.sqrt(q)
-    ax.axhline(y_eq, linestyle="--", linewidth=1.2, alpha=0.7, label="√q")
+    ax.axhline(y_eq, linestyle="--", linewidth=1.2, alpha=0.6, color="0.5", label=r"$\sqrt{q}$")
 
     ef = np.interp(t_ref, t_euler_fine, x_euler_fine[:, 0])
     ec = np.interp(t_ref, t_euler_coarse, x_euler_coarse[:, 0])
@@ -109,65 +120,90 @@ def plot_compare_methods(
     err_c = np.abs(ec - x_ref[:, 0])
 
     ax2 = ax.twinx()
-    ax2.plot(t_ref, err_f, alpha=0.35, label="|err| τ=0.01")
-    ax2.plot(t_ref, err_c, alpha=0.35, label="|err| τ=0.1")
+    # Show error as soft bands to reduce visual competition with solution curves
+    ax2.fill_between(t_ref, 0.0, err_f, color="tab:red", alpha=0.18, label=r"$|err|$ $\tau$=0.01")
+    ax2.fill_between(t_ref, 0.0, err_c, color="tab:blue", alpha=0.18, label=r"$|err|$ $\tau$=0.1")
     ax2.set_ylabel("abs. error (Euler vs LSODA)")
     ax.set_xlabel("t")
     ax.set_ylabel("x(t)")
     ax.set_title(f"Method comparison for q = {q}")
     ax.grid(True)
-    ax.legend(title="Solution", loc="upper left")
-    ax2.legend(title="Error", loc="upper right")
+
+    # Figure-level legends below the axes: separate boxes for Solution and Error
+    sol_handles, sol_labels = ax.get_legend_handles_labels()
+    err_handles, err_labels = ax2.get_legend_handles_labels()
+    leg1 = fig.legend(
+        sol_handles,
+        sol_labels,
+        title="Solution",
+        loc="lower left",
+        bbox_to_anchor=(0.02, -0.035),
+        ncol=max(1, len(sol_handles)),
+        frameon=True,
+    )
+    leg2 = fig.legend(
+        err_handles,
+        err_labels,
+        title="Error",
+        loc="lower right",
+        bbox_to_anchor=(0.98, -0.035),
+        ncol=max(1, len(err_handles)),
+        frameon=True,
+    )
+    fig.add_artist(leg1)
+    fig.add_artist(leg2)
+    fig.subplots_adjust(left=0.12, right=0.95, top=0.9, bottom=0.28)
     return fig
 
 
 def plot_lorenz_with_timecolor(t: Array, X: Array, t2: Array, X2: Array) -> Figure:
-    """Plot Lorenz trajectories with clear contrast between nearby starts."""
+    """Plot Lorenz trajectories with clear contrast – no inset."""
 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection="3d")
 
-    # Baseline trajectory: scatter coloured by time and a faint spine for context.
-    scatter = ax.scatter3D(
-        X[:, 0],
-        X[:, 1],
-        X[:, 2],
-        c=t,
-        cmap="viridis",
-        s=0.8,
-        alpha=0.65,
-        label="_nolegend_",
-    )
-    ax.plot(
-        X[:, 0],
-        X[:, 1],
-        X[:, 2],
-        color="0.3",
-        linewidth=1.0,
-        alpha=0.5,
-        label="Baseline",
-    )
-    fig.colorbar(scatter, ax=ax, label="time (s)")
+    # Baseline: thin gray line only (avoid busy scatter)
+    ax.plot(X[:, 0], X[:, 1], X[:, 2], color="0.4", linewidth=1.2, alpha=0.7, label="Baseline")
 
-    # Perturbed trajectory highlighted to emphasise divergence.
-    ax.plot(
-        X2[:, 0],
-        X2[:, 1],
-        X2[:, 2],
-        color="crimson",
-        linewidth=3.0,
-        label="$x_2(0)=5.01$ perturbed",
-    )
-    ax.scatter3D(X[0, 0], X[0, 1], X[0, 2], color="black", s=20, marker="o")
-    ax.scatter3D(X2[0, 0], X2[0, 1], X2[0, 2], color="crimson", s=30, marker="^")
+    # Perturbed: highlight
+    ax.plot(X2[:, 0], X2[:, 1], X2[:, 2], color="crimson", linewidth=2.6, label=r"$x_2(0)=5.01$ perturbed")
+    ax.scatter3D(X[0, 0], X[0, 1], X[0, 2], color="black", s=18, marker="o")
+    ax.scatter3D(X2[0, 0], X2[0, 1], X2[0, 2], color="crimson", s=26, marker="^")
 
     ax.set_xlabel("$x_1$")
     ax.set_ylabel("$x_2$")
     ax.set_zlabel("$x_3$")
     ax.set_title("Lorenz sensitivity to perturbing $x_2(0)$")
     ax.view_init(elev=22, azim=-45)
-    ax.legend(loc="upper left")
 
+    # Legend below the plot (figure-level)
+    handles, labels = ax.get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.04),
+        ncol=len(handles),
+        frameon=True,
+    )
+    fig.add_artist(leg)
+    fig.subplots_adjust(bottom=0.22)
+
+    return fig
+
+
+def plot_lorenz_separation(t: Array, X: Array, X2: Array) -> Figure:
+    """Plot the separation |ΔX| between two Lorenz trajectories over time."""
+
+    sep = np.linalg.norm(X2 - X, axis=1)
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    ax.plot(t, sep, color="crimson", linewidth=DEFAULT_LW)
+    ax.set_yscale("log")
+    ax.set_xlabel("t")
+    ax.set_ylabel(r"|$\Delta X$|(t)")
+    ax.set_title("Lorenz trajectory separation")
+    ax.grid(True)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.95, top=0.88)
     return fig
 
 
@@ -177,4 +213,5 @@ __all__ = [
     "plot_param_sweep",
     "plot_compare_methods",
     "plot_lorenz_with_timecolor",
+    "plot_lorenz_separation",
 ]
