@@ -7,6 +7,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.image as mpimg
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -142,6 +143,44 @@ def _make_run_dirs() -> tuple[Path, Path]:
     return run_dir, figs_dir
 
 
+def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
+    """Build a combined PDF with plots first and the answers at the end.
+
+    Saves the file as ``results.pdf`` inside ``run_dir``.
+    """
+
+    results_pdf = run_dir / "results.pdf"
+    answers_path = run_dir / "answers.txt"
+
+    order = [
+        "param_sweep_cubic",
+        "compare_q10",
+        "compare_q01",
+        "lorenz_sensitivity",
+        "lorenz_separation",
+    ]
+
+    with PdfPages(results_pdf) as pdf:
+        # Add figures as pages using exported PNGs to ensure WYSIWYG
+        for name in order:
+            png = figs_dir / f"{name}.png"
+            if not png.exists():
+                continue
+            img = mpimg.imread(png)
+            fig, ax = plt.subplots(figsize=(11.69, 8.27))  # landscape A4-ish
+            ax.imshow(img)
+            ax.axis("off")
+            pdf.savefig(fig, bbox_inches="tight")
+            plt.close(fig)
+
+        # Append answers page if available
+        if answers_path.exists():
+            text = answers_path.read_text(encoding="utf-8", errors="ignore")
+            fig = plt.figure(figsize=(8.5, 11))  # portrait
+            fig.text(0.06, 0.95, text, va="top", ha="left", fontsize=11)
+            pdf.savefig(fig, bbox_inches="tight")
+            plt.close(fig)
+
 def main() -> None:
     """Run all experiments, export figures, and rewrite the answer summary."""
 
@@ -178,6 +217,9 @@ def main() -> None:
 
     # Provide a blank answer template for manual completion.
     write_answers_template_to(run_dir / "answers.txt")
+
+    # Build a combined results PDF (plots first, then answers).
+    _create_results_pdf(run_dir, figs_dir)
 
     # Close figures after exporting to avoid resource warnings.
     for fig in figures:
