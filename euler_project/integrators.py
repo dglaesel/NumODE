@@ -1,6 +1,6 @@
 """Explicit Euler integrator class and function wrapper."""
 
-from __future__ import annotations
+from __future__ import annotations  # postpone evaluation of type hints (forward refs)
 
 import inspect
 from typing import Callable, Iterable, Tuple

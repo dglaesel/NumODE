@@ -1,6 +1,6 @@
 """Convenience access to the explEuler function."""
 
-from __future__ import annotations
+from __future__ import annotations  # postpone evaluation of type hints (forward refs)
 
 from euler_project.integrators import explEuler
 

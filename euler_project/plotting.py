@@ -1,6 +1,6 @@
 """Plotting utilities for the Euler ODE experiments."""
 
-from __future__ import annotations
+from __future__ import annotations  # postpone evaluation of type hints (forward refs)
 
 from pathlib import Path
 from typing import Sequence

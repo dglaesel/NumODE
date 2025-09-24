@@ -22,7 +22,7 @@ The experiments cover tasks (b)–(d) of the sheet:
 - (d) Lorenz system sensitivity with a small perturbation
 """
 
-from __future__ import annotations
+from __future__ import annotations  # postpone evaluation of type hints (forward refs)
 
 from datetime import datetime
 from pathlib import Path
@@ -287,4 +287,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

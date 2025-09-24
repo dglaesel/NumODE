@@ -1,6 +1,6 @@
 """Right-hand side definitions for the ODE problems."""
 
-from __future__ import annotations
+from __future__ import annotations  # postpone evaluation of type hints (forward refs)
 
 import numpy as np
 
