@@ -1,4 +1,26 @@
-﻿"""Experiment runners for the explicit Euler project."""
+"""Experiment suite and CLI entry point for the project.
+
+This module orchestrates the numerical experiments for the sheet 2.3
+assignment and is the only module you need to execute directly
+(`python -m euler_project.experiments`). It does not implement numerical
+methods itself – those live in dedicated modules – but wires together:
+
+- the problems to solve (problems.py)
+- the explicit Euler integrator (integrators.py)
+- the plotting helpers (plotting.py)
+
+For every run it creates a timestamped folder under
+`euler_project/runs/<YYYYMMDD-HHMMSS>/` that contains:
+- `figs/`: all figures exported as PNG and PDF
+- `all_plots.pdf`: concatenation of the Matplotlib figure objects
+- `answers.txt`: a blank template you can fill manually
+- `results.pdf`: plots first, your answers page appended at the end
+
+The experiments cover tasks (b)–(d) of the sheet:
+- (b) Parameter sweep for the scalar cubic ODE
+- (c) Method comparison (Euler vs. LSODA) for q=10 and q=0.1
+- (d) Lorenz system sensitivity with a small perturbation
+"""
 
 from __future__ import annotations
 
@@ -26,21 +48,29 @@ from .problems import rhs_cubic, rhs_lorenz
 
 Array = np.ndarray
 
+# Package root (euler_project/)
 PACKAGE_DIR = Path(__file__).resolve().parent
 
 
 def run_parameter_study() -> Figure:
-    """Run the cubic ODE parameter sweep and return the generated figure."""
+    """Task (b): parameter sweep for the cubic ODE.
 
+    Simulates the scalar IVP x' = q x - x^3 for several q values using the
+    explicit Euler wrapper and returns the Figure that overlays all
+    trajectories and their equilibria.
+    """
+
+    # Experiment configuration for task (b)
     q_values = [0.1, 0.5, 1.0, 2.0, 10.0, 20.0]
-    x0 = np.array([2.0])
-    tau = 0.01
-    T = 10.0
+    x0 = np.array([2.0])  # initial condition
+    tau = 0.01            # Euler step size
+    T = 10.0              # final time
 
     trajectories: list[Array] = []
     t_ref: Array | None = None
 
     for q in q_values:
+        # Bind q for this loop iteration and advance with explicit Euler
         cubic = lambda t, x, q=q: rhs_cubic(t, x, q)
         t, X = explEuler(cubic, x0, T, tau)
         trajectories.append(X)
@@ -50,14 +80,20 @@ def run_parameter_study() -> Figure:
     if t_ref is None:
         raise RuntimeError("Time grid was not generated during parameter sweep.")
 
+    # Render a single figure containing all trajectories
     fig = plot_param_sweep(t_ref, trajectories, q_values)
     return fig
 
 
 def run_method_comparison(q: float) -> Figure:
-    """Compare Euler solutions with an LSODA reference for a given q."""
+    """Task (c): compare Euler against LSODA for a given q.
 
-    x0 = np.array([2.0])
+    Runs Euler with two step sizes (0.01 and 0.1) and contrasts them against
+    a high-accuracy SciPy `solve_ivp(..., method='LSODA')` reference.
+    Returns a Figure that shows both the solution and absolute error bands.
+    """
+
+    x0 = np.array([2.0])  # same initial value as in (b)
     T = 10.0
 
     cubic = lambda t, x, q=q: rhs_cubic(t, x, q)
@@ -65,6 +101,7 @@ def run_method_comparison(q: float) -> Figure:
     t_euler_fine, x_euler_fine = explEuler(cubic, x0, T, 0.01)
     t_euler_coarse, x_euler_coarse = explEuler(cubic, x0, T, 0.1)
 
+    # High-accuracy reference solution used for comparison
     sol = solve_ivp(
         rhs_cubic,
         (0.0, T),
@@ -90,12 +127,13 @@ def run_method_comparison(q: float) -> Figure:
 
 
 def run_lorenz_sensitivity() -> tuple[Figure, Figure]:
-    """Simulate the Lorenz system for two nearby initial conditions.
+    """Task (d): sensitivity of the Lorenz system.
 
-    Returns a tuple of figures: (3D trajectory figure, separation figure).
+    Simulates the Lorenz-63 system from two nearby initial conditions.
+    Returns a pair (3D trajectory Figure, 2D separation Figure).
     """
 
-    tau = 0.001
+    tau = 0.001  # small step to resolve the dynamics
     T = 10.0
 
     x0 = np.array([10.0, 5.0, 12.0])
@@ -104,26 +142,32 @@ def run_lorenz_sensitivity() -> tuple[Figure, Figure]:
     t, X = explEuler(rhs_lorenz, x0, T, tau)
     t2, X2 = explEuler(rhs_lorenz, x0_perturbed, T, tau)
 
+    # Visualise both the 3D trajectories and |ΔX|(t) on a log scale
     fig3d = plot_lorenz_with_timecolor(t, X, t2, X2)
     fig_sep = plot_lorenz_separation(t, X, X2)
     return fig3d, fig_sep
 
 
 def write_answers_template_to(dest_path: Path) -> None:
-    """Create a blank answer template for manual completion at dest_path."""
+    """Create a blank answer template for manual completion at `dest_path`.
+
+    The template contains the question prompts for (b)–(d) so you can type
+    your discussion right in the generated text file. The combined
+    `results.pdf` will append whatever is in this file at the end.
+    """
 
     text = "\n".join(
         [
-            "(b) Parameter study – qualitative long-term behaviour vs q:",
+            "(b) Parameter study - qualitative long-term behaviour vs q:",
             "",
             "",
-            "(c, q=10) Method comparison – Euler vs LSODA:",
+            "(c, q=10) Method comparison - Euler vs LSODA:",
             "",
             "",
-            "(c, q=0.1) Method comparison – Euler vs LSODA:",
+            "(c, q=0.1) Method comparison - Euler vs LSODA:",
             "",
             "",
-            "(d) Lorenz sensitivity – describe whether/when trajectories diverge:",
+            "(d) Lorenz sensitivity - describe whether/when trajectories diverge:",
             "",
             "",
         ]
@@ -132,9 +176,9 @@ def write_answers_template_to(dest_path: Path) -> None:
 
 
 def _make_run_dirs() -> tuple[Path, Path]:
-    """Create a timestamped run directory and its figs subfolder.
+    """Create a timestamped run directory and its `figs` subfolder.
 
-    Returns (run_dir, figs_dir).
+    Returns a pair (`run_dir`, `figs_dir`).
     """
 
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -144,14 +188,17 @@ def _make_run_dirs() -> tuple[Path, Path]:
 
 
 def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
-    """Build a combined PDF with plots first and the answers at the end.
+    """Build `results.pdf` with plots first and answers at the end.
 
-    Saves the file as ``results.pdf`` inside ``run_dir``.
+    The figure pages are taken from the exported PNGs to guarantee WYSIWYG
+    equality with what you see on disk. The last page embeds the content of
+    `answers.txt` if present.
     """
 
     results_pdf = run_dir / "results.pdf"
     answers_path = run_dir / "answers.txt"
 
+    # Page order of the combined results
     order = [
         "param_sweep_cubic",
         "compare_q10",
@@ -161,7 +208,7 @@ def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
     ]
 
     with PdfPages(results_pdf) as pdf:
-        # Add figures as pages using exported PNGs to ensure WYSIWYG
+        # Add figure pages from the exported PNGs
         for name in order:
             png = figs_dir / f"{name}.png"
             if not png.exists():
@@ -181,54 +228,63 @@ def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
             pdf.savefig(fig, bbox_inches="tight")
             plt.close(fig)
 
+
 def main() -> None:
-    """Run all experiments, export figures, and rewrite the answer summary."""
+    """Entry point used by `python -m euler_project.experiments`.
+
+    Runs all experiments, exports individual plots, writes the answer
+    template, and generates the combined `results.pdf` for the run.
+    """
 
     run_dir, figs_dir = _make_run_dirs()
 
-    figures: list[Figure] = []
+    figures: list[Figure] = []  # keep open figures to close them later
 
+    # Task (b)
     fig_param = run_parameter_study()
     figures.append(fig_param)
 
+    # Task (c): q=10 and q=0.1
     fig_q10 = run_method_comparison(10.0)
     figures.append(fig_q10)
 
     fig_q01 = run_method_comparison(0.1)
     figures.append(fig_q01)
 
+    # Task (d)
     fig_lorenz, fig_lorenz_sep = run_lorenz_sensitivity()
     figures.append(fig_lorenz)
     figures.append(fig_lorenz_sep)
 
-    # Save individual PNGs for this run.
+    # Save individual PNG/PDFs for this run
     savefig(fig_param, figs_dir / "param_sweep_cubic.png")
     savefig(fig_q10, figs_dir / "compare_q10.png")
     savefig(fig_q01, figs_dir / "compare_q01.png")
     savefig(fig_lorenz, figs_dir / "lorenz_sensitivity.png")
     savefig(fig_lorenz_sep, figs_dir / "lorenz_separation.png")
 
-    # Also save a combined PDF of all figures in the run root.
+    # Save a concatenation of the raw Matplotlib figures (diagnostic)
     pdf_path = run_dir / "all_plots.pdf"
     with PdfPages(pdf_path) as pdf:
         for fig in figures:
             # Avoid tight_layout here (3D axes are incompatible); rely on bbox_inches
             pdf.savefig(fig, bbox_inches="tight")
 
-    # Provide a blank answer template for manual completion.
+    # Provide a blank answer template for manual completion
     write_answers_template_to(run_dir / "answers.txt")
 
-    # Build a combined results PDF (plots first, then answers).
+    # Build the user-facing results.pdf (plots first, answers last)
     _create_results_pdf(run_dir, figs_dir)
 
-    # Close figures after exporting to avoid resource warnings.
+    # Close figures after exporting to avoid resource warnings
     for fig in figures:
         if plt.fignum_exists(fig.number):
             plt.close(fig)
 
-    # Print output location for convenience when running from CLI.
+    # Print output location for convenience when running from CLI
     print(f"Saved run to: {run_dir}")
 
 
 if __name__ == "__main__":
     main()
+

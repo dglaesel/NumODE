@@ -25,3 +25,30 @@ Each run now creates a timestamped output folder under `euler_project/runs/`:
 
 Note: Older instructions that referenced `euler_project/figs/` and
 `euler_project/answers.txt` are superseded by the per-run layout above.
+
+## Architecture
+
+- `integrators.py`
+  - Provides the explicit Euler method via the `ExplicitEuler` class and the
+    convenience function `explEuler(f, x0, T, tau)` used by the experiments.
+- `problems.py`
+  - Right‑hand side functions for the assignment: `rhs_cubic` (scalar cubic
+    ODE) and `rhs_lorenz` (Lorenz–63 system).
+- `plotting.py`
+  - Small utilities (`ensure_dir`, `savefig`) and purpose‑built plotting
+    functions for each experiment: parameter sweep, method comparison, and
+    Lorenz visualisations (3D trajectory and a separate separation plot).
+- `experiments.py`
+  - The driver you run with `python -m euler_project.experiments`. It:
+    - Runs (b) parameter sweep (`run_parameter_study`).
+    - Runs (c) method comparisons for `q=10` and `q=0.1`
+      (`run_method_comparison`).
+    - Runs (d) Lorenz sensitivity (`run_lorenz_sensitivity`).
+    - Creates a timestamped run folder with exported figures (`figs/`), a
+      blank `answers.txt`, `all_plots.pdf` (raw Matplotlib pages), and a
+      user‑facing `results.pdf` that appends your answers at the end.
+
+### Data Flow
+- Numerical steps come from `integrators.explEuler`.
+- Arrays feed the plotters in `plotting.py` to create figures.
+- `experiments.py` handles export and result collation per run.
