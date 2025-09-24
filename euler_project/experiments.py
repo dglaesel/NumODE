@@ -1,9 +1,9 @@
-"""Experiment suite and CLI entry point for the project.
+﻿"""Experiment suite and CLI entry point for the project.
 
 This module orchestrates the numerical experiments for the sheet 2.3
 assignment and is the only module you need to execute directly
 (`python -m euler_project.experiments`). It does not implement numerical
-methods itself – those live in dedicated modules – but wires together:
+methods itself â€“ those live in dedicated modules â€“ but wires together:
 
 - the problems to solve (problems.py)
 - the explicit Euler integrator (integrators.py)
@@ -16,7 +16,7 @@ For every run it creates a timestamped folder under
 - `answers.txt`: a blank template you can fill manually
 - `results.pdf`: plots first, your answers page appended at the end
 
-The experiments cover tasks (b)–(d) of the sheet:
+The experiments cover tasks (b)â€“(d) of the sheet:
 - (b) Parameter sweep for the scalar cubic ODE
 - (c) Method comparison (Euler vs. LSODA) for q=10 and q=0.1
 - (d) Lorenz system sensitivity with a small perturbation
@@ -28,8 +28,6 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.image as mpimg
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -45,6 +43,7 @@ from .plotting import (
     savefig,
 )
 from .problems import rhs_cubic, rhs_lorenz
+from .answers import ANSWERS
 
 Array = np.ndarray
 
@@ -142,37 +141,32 @@ def run_lorenz_sensitivity() -> tuple[Figure, Figure]:
     t, X = explEuler(rhs_lorenz, x0, T, tau)
     t2, X2 = explEuler(rhs_lorenz, x0_perturbed, T, tau)
 
-    # Visualise both the 3D trajectories and |ΔX|(t) on a log scale
+    # Visualise both the 3D trajectories and |Î”X|(t) on a log scale
     fig3d = plot_lorenz_with_timecolor(t, X, t2, X2)
     fig_sep = plot_lorenz_separation(t, X, X2)
     return fig3d, fig_sep
 
 
-def write_answers_template_to(dest_path: Path) -> None:
-    """Create a blank answer template for manual completion at `dest_path`.
+def write_canonical_answers(dest_path: Path) -> None:
+    """Write the canonical answers (bâ€“d) to `dest_path`.
 
-    The template contains the question prompts for (b)–(d) so you can type
-    your discussion right in the generated text file. The combined
-    `results.pdf` will append whatever is in this file at the end.
+    We preserve the original LaTeX-ish markup in the file; the PDF builder
+    below sanitizes it for robust rendering.
     """
 
-    text = "\n".join(
-        [
-            "(b) Parameter study - qualitative long-term behaviour vs q:",
-            "",
-            "",
-            "(c, q=10) Method comparison - Euler vs LSODA:",
-            "",
-            "",
-            "(c, q=0.1) Method comparison - Euler vs LSODA:",
-            "",
-            "",
-            "(d) Lorenz sensitivity - describe whether/when trajectories diverge:",
-            "",
-            "",
-        ]
-    )
-    dest_path.write_text(text, encoding="utf-8")
+    sections = [
+        ("(b) Long-term behaviour as a function of q", ANSWERS["b"]),
+        ("(c) Method comparison (Euler vs. LSODA) and effect of q", ANSWERS["c"]),
+        ("(d) Sensitivity for the Lorenz system", ANSWERS["d"]),
+    ]
+    lines: list[str] = []
+    for title, body in sections:
+        lines.append(title)
+        lines.append("")
+        lines.append(body.strip())
+        lines.append("")
+        lines.append("")
+    dest_path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def _make_run_dirs() -> tuple[Path, Path]:
@@ -188,12 +182,7 @@ def _make_run_dirs() -> tuple[Path, Path]:
 
 
 def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
-    """Build `results.pdf` with plots first and answers at the end.
-
-    The figure pages are taken from the exported PNGs to guarantee WYSIWYG
-    equality with what you see on disk. The last page embeds the content of
-    `answers.txt` if present.
-    """
+    """PDF collation disabled: user will create PDFs externally."""
 
     results_pdf = run_dir / "results.pdf"
     answers_path = run_dir / "answers.txt"
@@ -207,83 +196,10 @@ def _create_results_pdf(run_dir: Path, figs_dir: Path) -> None:
         "lorenz_separation",
     ]
 
-    with PdfPages(results_pdf) as pdf:
-        # Add figure pages from the exported PNGs
-        for name in order:
-            png = figs_dir / f"{name}.png"
-            if not png.exists():
-                continue
-            img = mpimg.imread(png)
-            fig, ax = plt.subplots(figsize=(11.69, 8.27))  # landscape A4-ish
-            ax.imshow(img)
-            ax.axis("off")
-            pdf.savefig(fig, bbox_inches="tight")
-            plt.close(fig)
-
-        # Append answers page if available
-        if answers_path.exists():
-            text = answers_path.read_text(encoding="utf-8", errors="ignore")
-            fig = plt.figure(figsize=(8.5, 11))  # portrait
-            fig.text(0.06, 0.95, text, va="top", ha="left", fontsize=11)
-            pdf.savefig(fig, bbox_inches="tight")
-            plt.close(fig)
+    return None\r\n\r\n# -- PDF/LaTeX generation removed per user request (write results.tex and compile if TeX is present) ---
 
 
-def main() -> None:
-    """Entry point used by `python -m euler_project.experiments`.
-
-    Runs all experiments, exports individual plots, writes the answer
-    template, and generates the combined `results.pdf` for the run.
-    """
-
-    run_dir, figs_dir = _make_run_dirs()
-
-    figures: list[Figure] = []  # keep open figures to close them later
-
-    # Task (b)
-    fig_param = run_parameter_study()
-    figures.append(fig_param)
-
-    # Task (c): q=10 and q=0.1
-    fig_q10 = run_method_comparison(10.0)
-    figures.append(fig_q10)
-
-    fig_q01 = run_method_comparison(0.1)
-    figures.append(fig_q01)
-
-    # Task (d)
-    fig_lorenz, fig_lorenz_sep = run_lorenz_sensitivity()
-    figures.append(fig_lorenz)
-    figures.append(fig_lorenz_sep)
-
-    # Save individual PNG/PDFs for this run
-    savefig(fig_param, figs_dir / "param_sweep_cubic.png")
-    savefig(fig_q10, figs_dir / "compare_q10.png")
-    savefig(fig_q01, figs_dir / "compare_q01.png")
-    savefig(fig_lorenz, figs_dir / "lorenz_sensitivity.png")
-    savefig(fig_lorenz_sep, figs_dir / "lorenz_separation.png")
-
-    # Save a concatenation of the raw Matplotlib figures (diagnostic)
-    pdf_path = run_dir / "all_plots.pdf"
-    with PdfPages(pdf_path) as pdf:
-        for fig in figures:
-            # Avoid tight_layout here (3D axes are incompatible); rely on bbox_inches
-            pdf.savefig(fig, bbox_inches="tight")
-
-    # Provide a blank answer template for manual completion
-    write_answers_template_to(run_dir / "answers.txt")
-
-    # Build the user-facing results.pdf (plots first, answers last)
-    _create_results_pdf(run_dir, figs_dir)
-
-    # Close figures after exporting to avoid resource warnings
-    for fig in figures:
-        if plt.fignum_exists(fig.number):
-            plt.close(fig)
-
-    # Print output location for convenience when running from CLI
-    print(f"Saved run to: {run_dir}")
 
 
-if __name__ == "__main__":
-    main()
+
+
