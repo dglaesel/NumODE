@@ -1,7 +1,8 @@
-﻿# Euler Project
+# Euler/Runge–Kutta Project
 
-This package solves assignment 2.3 from Sheet 2 using an explicit Euler
-integrator for ordinary differential equations.
+This package now covers programming exercises 1 and 2. It started with an
+explicit Euler baseline and has been extended with a generic explicit
+Runge–Kutta (ERK) solver to run the new experiments from exercise 3.4.
 
 ## Running the experiments
 
@@ -17,38 +18,40 @@ pip install -r requirements.txt
 python -m euler_project.experiments
 ```
 
-Each run now creates a timestamped output folder under `euler_project/runs/`:
+Each run creates a timestamped output folder under `euler_project/runs/`:
 
 - Root: `euler_project/runs/<YYYYMMDD-HHMMSS>/`
-- Figures: `<run>/figs/` (PNG files)
-- Answers: `<run>/answers.txt` (blank template to fill)
-
-Note: Older instructions that referenced `euler_project/figs/` and
-`euler_project/answers.txt` are superseded by the per-run layout above.
+- Figures: `<run>/figs/` (PNG + PDF)
+- Answers: `<run>/answers.txt` (exercise 1 write‑up)
+- Combined PDFs: `<run>/all_plots.pdf` and `<run>/results.pdf`
 
 ## Architecture
 
 - `integrators.py`
-  - Provides the explicit Euler method via the `ExplicitEuler` class and the
-    convenience function `explEuler(f, x0, T, tau)` used by the experiments.
+  - Original: `ExplicitEuler` + `explEuler(f, x0, T, tau)`.
+  - New: `ExplicitRungeKutta` + `exRungeKutta(f, x0, T, tau, A, b, c)` – a
+    generic ERK solver for any explicit Butcher tableau; works for autonomous
+    and non‑autonomous RHS and vector states.
 - `problems.py`
-  - Right‑hand side functions for the assignment: `rhs_cubic` (scalar cubic
-    ODE) and `rhs_lorenz` (Lorenz–63 system).
+  - Original: `rhs_cubic`, `rhs_lorenz`.
+  - New: `rhs_logistic`, its closed form `logistic_analytic`, and
+    `rhs_forced_lorenz` (sinusoidal forcing in the first equation).
 - `plotting.py`
-  - Small utilities (`ensure_dir`, `savefig`) and purpose‑built plotting
-    functions for each experiment: parameter sweep, method comparison, and
-    Lorenz visualisations (3D trajectory and a separate separation plot).
+  - Original plotting utilities preserved.
+  - New: `plot_logistic_comparison`, `plot_convergence`, `plot_forced_lorenz`.
+- `experiment1.py`
+  - The previous experiment suite (exercise 1) kept intact.
+- `experiment2.py`
+  - New RK experiments (exercise 2): logistic method comparison, convergence
+    study, and forced Lorenz.
 - `experiments.py`
-  - The driver you run with `python -m euler_project.experiments`. It:
-    - Runs (b) parameter sweep (`run_parameter_study`).
-    - Runs (c) method comparisons for `q=10` and `q=0.1`
-      (`run_method_comparison`).
-    - Runs (d) Lorenz sensitivity (`run_lorenz_sensitivity`).
-    - Creates a timestamped run folder with exported figures (`figs/`), a
-      blank `answers.txt`, `all_plots.pdf` (raw Matplotlib pages), and a
-      user‑facing `results.pdf` that appends your answers at the end.
+  - Aggregator entry point that runs both experiment sets and exports results.
+  - To run only exercise 1 or 2 directly:
+    - `python -m euler_project.experiment1`
+    - `python -m euler_project.experiment2`
 
 ### Data Flow
-- Numerical steps come from `integrators.explEuler`.
+- Numerical steps come from `integrators.explEuler` and the new
+  `integrators.exRungeKutta`.
 - Arrays feed the plotters in `plotting.py` to create figures.
 - `experiments.py` handles export and result collation per run.

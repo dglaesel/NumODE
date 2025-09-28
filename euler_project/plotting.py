@@ -215,3 +215,123 @@ __all__ = [
     "plot_lorenz_with_timecolor",
     "plot_lorenz_separation",
 ]
+
+
+def plot_logistic_comparison(
+    t: Array,
+    numeric_solutions: Sequence[Array],
+    analytic: Array,
+    method_labels: Sequence[str],
+    q: float,
+) -> Figure:
+    """Plot several numerical solutions of the logistic ODE vs analytic.
+
+    Parameters
+    ----------
+    t
+        Time vector shared by all numerical solutions and the analytic values.
+    numeric_solutions
+        Sequence of arrays with shape ``(len(t), 1)``.
+    analytic
+        Array with shape ``(len(t),)`` or ``(len(t), 1)``.
+    method_labels
+        Legend labels for the numerical methods (same order as solutions).
+    q
+        Logistic parameter, used for the title.
+    """
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    # Analytic solution first for reference
+    y = analytic.reshape(-1)
+    ax.plot(t, y, label="analytic", color="black", linewidth=DEFAULT_LW)
+
+    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+    for idx, (X, lbl) in enumerate(zip(numeric_solutions, method_labels)):
+        clr = colors[idx % len(colors)] if colors else None
+        ax.plot(t, X[:, 0], label=lbl, linewidth=DEFAULT_LW, linestyle="--", color=clr)
+
+    ax.set_xlabel("t")
+    ax.set_ylabel("x(t)")
+    ax.set_title(f"Logistic ODE comparison (q={q})")
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.95, top=0.9)
+    return fig
+
+
+def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
+    """Log–log convergence plot with fitted slopes.
+
+    Plots ``log2(taus)`` vs ``log2(errors)``. Adds a linear fit per method and
+    annotates the slope in the legend label.
+    """
+
+    taus = np.asarray(taus, dtype=float)
+    if taus.ndim != 1:
+        raise ValueError("taus must be a 1-D array")
+    x = np.log2(taus)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+
+    for i, (name, errs) in enumerate(errors.items()):
+        e = np.asarray(errs, dtype=float).reshape(-1)
+        # avoid log(0)
+        eps = 1e-16
+        e = np.maximum(e, eps)
+        y = np.log2(e)
+        # Fit y = m x + b
+        m, b = np.polyfit(x, y, 1)
+        label = f"{name} (slope≈{m:.2f})"
+        clr = colors[i % len(colors)] if colors else None
+        ax.plot(x, y, marker="o", linestyle="-", label=label, color=clr)
+        # fitted line
+        ax.plot(x, m * x + b, linestyle=":", color=clr, alpha=0.8)
+
+    ax.set_xlabel(r"$\log_2(\tau)$")
+    ax.set_ylabel(r"$\log_2(\mathrm{error})$ at T")
+    ax.set_title("Convergence study (log–log)")
+    ax.grid(True, which="both")
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.14, left=0.15, right=0.95, top=0.9)
+    return fig
+
+
+def plot_forced_lorenz(
+    t_rk: Array,
+    X_rk: Array,
+    t_euler: Array,
+    X_euler: Array,
+) -> Figure:
+    """3‑D trajectories for the forced Lorenz system (midpoint vs Euler)."""
+
+    fig = plt.figure(figsize=(8.2, 6.4))
+    ax = fig.add_subplot(111, projection="3d")
+
+    ax.plot(X_rk[:, 0], X_rk[:, 1], X_rk[:, 2], color="tab:orange", label="midpoint RK")
+    ax.plot(
+        X_euler[:, 0],
+        X_euler[:, 1],
+        X_euler[:, 2],
+        color="tab:blue",
+        linestyle="--",
+        label="explicit Euler",
+    )
+
+    ax.set_xlabel("$x_1$")
+    ax.set_ylabel("$x_2$")
+    ax.set_zlabel("$x_3$")
+    ax.set_title("Forced Lorenz trajectories")
+    ax.view_init(elev=22, azim=-45)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.06, left=0.02, right=1.0, top=0.93)
+    return fig
+
+
+# Update exported names
+__all__ += [
+    "plot_logistic_comparison",
+    "plot_convergence",
+    "plot_forced_lorenz",
+]
