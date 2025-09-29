@@ -240,33 +240,35 @@ def plot_logistic_comparison(
         Logistic parameter, used for the title.
     """
 
-    fig, ax = plt.subplots(figsize=(10.5, 6.2))
+    fig, ax = plt.subplots(figsize=(10.0, 6.0))
 
-    # Analytic solution first for reference
-    y = analytic.reshape(-1)
-    ax.plot(t, y, label="analytic", color="black", linewidth=DEFAULT_LW)
-
+    # Numeric methods: match the sample style — solid, dashed, dotted
     colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+    linestyles = ["-", "--", ":"]
     for idx, (X, lbl) in enumerate(zip(numeric_solutions, method_labels)):
         clr = colors[idx % len(colors)] if colors else None
-        ax.plot(t, X[:, 0], label=lbl, linewidth=DEFAULT_LW, linestyle="--", color=clr)
+        ls = linestyles[idx % len(linestyles)]
+        ax.plot(t, X[:, 0], label=lbl, linewidth=DEFAULT_LW, linestyle=ls, color=clr)
 
-    ax.set_xlabel("t")
-    ax.set_ylabel("x(t)")
-    ax.set_title(f"Logistic ODE comparison (q={q})")
-    ax.grid(True)
-    # Place a figure-level legend below to avoid covering curves
-    handles, labels = ax.get_legend_handles_labels()
-    leg = fig.legend(
-        handles,
-        labels,
-        loc="lower center",
-        bbox_to_anchor=(0.5, -0.04),
-        ncol=min(2, len(handles)),
-        frameon=True,
+    # Analytic solution as open circle markers
+    y = analytic.reshape(-1)
+    ax.plot(
+        t,
+        y,
+        linestyle="None",
+        marker="o",
+        markersize=5.0,
+        markerfacecolor="none",
+        markeredgecolor="tab:purple",
+        label="analytic solution",
     )
-    fig.add_artist(leg)
-    fig.subplots_adjust(bottom=0.22, left=0.12, right=0.96, top=0.9)
+
+    ax.set_xlabel("time")
+    ax.set_ylabel("x(t)")
+    ax.set_title("Approximation of the solution for different RK methods")
+    ax.grid(True)
+    ax.legend(loc="upper right", frameon=True)
+    fig.subplots_adjust(bottom=0.12, left=0.12, right=0.97, top=0.9)
     return fig
 
 
@@ -282,7 +284,7 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         raise ValueError("taus must be a 1-D array")
     x = np.log2(taus)
 
-    fig, ax = plt.subplots(figsize=(9.6, 6.2))
+    fig, ax = plt.subplots(figsize=(10.0, 6.0))
     colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
 
     for i, (name, errs) in enumerate(errors.items()):
@@ -293,27 +295,18 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         y = np.log2(e)
         # Fit y = m x + b
         m, b = np.polyfit(x, y, 1)
-        label = f"{name} (slope≈{m:.2f})"
+        label = f"{name}"
         clr = colors[i % len(colors)] if colors else None
         ax.plot(x, y, marker="o", markersize=6, linestyle="-", label=label, color=clr)
         # fitted line
         ax.plot(x, m * x + b, linestyle=":", color=clr, alpha=0.8)
 
     ax.set_xlabel(r"$\log_2(\tau)$")
-    ax.set_ylabel(r"$\log_2(\mathrm{error})$ at T")
-    ax.set_title("Convergence study (log–log)")
+    ax.set_ylabel(r"$\log_2(\mathrm{error})$")
+    ax.set_title(r"$\log_2,\log_2$ plot of the error for the three different RK methods")
     ax.grid(True, which="both")
-    # Legend on the right to keep the plot area clear
-    handles, labels = ax.get_legend_handles_labels()
-    leg = fig.legend(
-        handles,
-        labels,
-        loc="center left",
-        bbox_to_anchor=(1.0, 0.5),
-        frameon=True,
-    )
-    fig.add_artist(leg)
-    fig.subplots_adjust(bottom=0.14, left=0.15, right=0.78, top=0.92)
+    ax.legend(loc="lower left", frameon=True)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
     return fig
 
 

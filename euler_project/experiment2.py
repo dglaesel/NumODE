@@ -88,7 +88,8 @@ def run_logistic_methods(q: float) -> Figure:
     t = t1
     exact = logistic_analytic(t, float(x0[0]), q)
 
-    labels = ["Euler", "midpoint", "RK4"]
+    # Labels styled to match the sample figures
+    labels = ["explicit Euler", "Runge Method", "classical Runge Method"]
     return plot_logistic_comparison(t, [X1, X2, X4], exact, labels, q)
 
 
