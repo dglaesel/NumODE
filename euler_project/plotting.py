@@ -269,6 +269,17 @@ def plot_logistic_comparison(
     ax.set_title("Approximation of the solution for different RK methods")
     ax.grid(True)
     ax.legend(loc="upper right", frameon=True)
+    # unobtrusive box identifying the q value
+    ax.text(
+        0.02,
+        0.96,
+        f"q = {q}",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=12.5,
+        bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "alpha": 0.85, "edgecolor": "0.4"},
+    )
     fig.subplots_adjust(bottom=0.12, left=0.12, right=0.97, top=0.9)
     return fig
 
