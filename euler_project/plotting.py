@@ -13,11 +13,11 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  # needed for 3D projectio
 
 mpl.rcParams.update(
     {
-        "font.size": 12,
-        "axes.titlesize": 18,
-        "axes.labelsize": 14,
-        "legend.fontsize": 12,
-        "lines.linewidth": 2.2,
+        "font.size": 13,
+        "axes.titlesize": 20,
+        "axes.labelsize": 15,
+        "legend.fontsize": 13,
+        "lines.linewidth": 2.4,
     }
 )
 plt.style.use("ggplot")
@@ -240,7 +240,7 @@ def plot_logistic_comparison(
         Logistic parameter, used for the title.
     """
 
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(10.5, 6.2))
 
     # Analytic solution first for reference
     y = analytic.reshape(-1)
@@ -255,8 +255,18 @@ def plot_logistic_comparison(
     ax.set_ylabel("x(t)")
     ax.set_title(f"Logistic ODE comparison (q={q})")
     ax.grid(True)
-    ax.legend(loc="best")
-    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.95, top=0.9)
+    # Place a figure-level legend below to avoid covering curves
+    handles, labels = ax.get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.04),
+        ncol=min(2, len(handles)),
+        frameon=True,
+    )
+    fig.add_artist(leg)
+    fig.subplots_adjust(bottom=0.22, left=0.12, right=0.96, top=0.9)
     return fig
 
 
@@ -272,7 +282,7 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         raise ValueError("taus must be a 1-D array")
     x = np.log2(taus)
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(9.6, 6.2))
     colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
 
     for i, (name, errs) in enumerate(errors.items()):
@@ -285,7 +295,7 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         m, b = np.polyfit(x, y, 1)
         label = f"{name} (slope≈{m:.2f})"
         clr = colors[i % len(colors)] if colors else None
-        ax.plot(x, y, marker="o", linestyle="-", label=label, color=clr)
+        ax.plot(x, y, marker="o", markersize=6, linestyle="-", label=label, color=clr)
         # fitted line
         ax.plot(x, m * x + b, linestyle=":", color=clr, alpha=0.8)
 
@@ -293,8 +303,17 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
     ax.set_ylabel(r"$\log_2(\mathrm{error})$ at T")
     ax.set_title("Convergence study (log–log)")
     ax.grid(True, which="both")
-    ax.legend(loc="best")
-    fig.subplots_adjust(bottom=0.14, left=0.15, right=0.95, top=0.9)
+    # Legend on the right to keep the plot area clear
+    handles, labels = ax.get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=True,
+    )
+    fig.add_artist(leg)
+    fig.subplots_adjust(bottom=0.14, left=0.15, right=0.78, top=0.92)
     return fig
 
 
@@ -306,7 +325,7 @@ def plot_forced_lorenz(
 ) -> Figure:
     """3‑D trajectories for the forced Lorenz system (midpoint vs Euler)."""
 
-    fig = plt.figure(figsize=(8.2, 6.4))
+    fig = plt.figure(figsize=(9.5, 7.2))
     ax = fig.add_subplot(111, projection="3d")
 
     ax.plot(X_rk[:, 0], X_rk[:, 1], X_rk[:, 2], color="tab:orange", label="midpoint RK")
@@ -324,8 +343,18 @@ def plot_forced_lorenz(
     ax.set_zlabel("$x_3$")
     ax.set_title("Forced Lorenz trajectories")
     ax.view_init(elev=22, azim=-45)
-    ax.legend(loc="best")
-    fig.subplots_adjust(bottom=0.06, left=0.02, right=1.0, top=0.93)
+    # Legend below to avoid covering the attractor
+    handles, labels = ax.get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.0),
+        ncol=len(handles),
+        frameon=True,
+    )
+    fig.add_artist(leg)
+    fig.subplots_adjust(bottom=0.14, left=0.02, right=1.0, top=0.93)
     return fig
 
 
