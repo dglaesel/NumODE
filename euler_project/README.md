@@ -18,6 +18,11 @@ pip install -r requirements.txt
 python -m euler_project.experiments
 ```
 
+Run one assignment only
+
+- Exercise 1 (original): `python -m euler_project.experiment1`
+- Exercise 2 (Runge–Kutta): `python -m euler_project.experiment2`
+
 Each run creates a timestamped output folder under `euler_project/runs/`:
 
 - Root: `euler_project/runs/<YYYYMMDD-HHMMSS>/`

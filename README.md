@@ -29,6 +29,18 @@ an experiment driver that produces per‑run, timestamped results.
    python -m euler_project.experiments
    ```
 
+### Run a single assignment
+If you only want to run one assignment's figures:
+
+- Exercise 1 (original):
+  ```powershell
+  python -m euler_project.experiment1
+  ```
+- Exercise 2 (Runge–Kutta):
+  ```powershell
+  python -m euler_project.experiment2
+  ```
+
 ## Output
 Every run creates a folder: `euler_project/runs/<YYYYMMDD-HHMMSS>/`
 - `figs/` — PNG and PDF for each plot
