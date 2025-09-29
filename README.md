@@ -1,9 +1,6 @@
-﻿# NumODE — Explicit Euler for ODEs
+# NumODE � Euler and Runge�Kutta for ODEs
 
-Assignment 1/Sheet 2.3 style project for experimenting with numerical
-integration of ordinary differential equations (ODEs). The repo provides a
-clean Explicit Euler baseline, a small set of problems, plotting helpers, and
-an experiment driver that produces per‑run, timestamped results.
+Assignments 1 and 2 in one repo. It started as an Explicit Euler baseline and now includes a generic explicit Runge�Kutta solver with additional experiments from programming exercise 3.4. The driver creates per-run, timestamped results that are easy to review and share.
 
 ## Setup (Windows, PowerShell)
 1. Clone and enter the repo
@@ -24,7 +21,7 @@ an experiment driver that produces per‑run, timestamped results.
    ```powershell
    pip install -r requirements.txt
    ```
-5. Run the experiments
+5. Run all experiments (assignments 1 + 2)
    ```powershell
    python -m euler_project.experiments
    ```
@@ -36,58 +33,46 @@ If you only want to run one assignment's figures:
   ```powershell
   python -m euler_project.experiment1
   ```
-- Exercise 2 (Runge–Kutta):
+- Exercise 2 (Runge�Kutta):
   ```powershell
   python -m euler_project.experiment2
   ```
 
 ## Output
 Every run creates a folder: `euler_project/runs/<YYYYMMDD-HHMMSS>/`
-- `figs/` — PNG and PDF for each plot
-- `all_plots.pdf` — concatenation of the raw Matplotlib figure pages
-- `answers.txt` — blank template you can fill manually
-- `results.pdf` — plots first, then the content of `answers.txt`
+- `figs/` - PNG and PDF for each plot
+- `all_plots.pdf` - concatenation of the raw Matplotlib figure pages
+- `answers.txt` - template for Exercise 1 answers (optional)
+- `results.pdf` - plots first, then the content of `answers.txt` (if present)
 
 ## Project Architecture
 - `euler_project/integrators.py`
-  - Explicit Euler integrator. Exposes the `ExplicitEuler` class and the
-    convenience function `explEuler(f, x0, T, tau)` used across experiments.
-  - Extensible: this module is the right place to implement additional
-    time‑stepping methods (e.g., Implicit Euler, Heun, RK4, adaptive schemes).
+  - `ExplicitEuler` + `explEuler(f, x0, T, tau)`.
+  - `ExplicitRungeKutta` + `exRungeKutta(f, x0, T, tau, A, b, c)` (generic ERK driven by a Butcher tableau; supports autonomous and non-autonomous RHS and vector states).
 - `euler_project/problems.py`
-  - Right‑hand sides for the ODEs used in the assignments: `rhs_cubic`
-    (scalar cubic IVP) and `rhs_lorenz` (Lorenz–63 system).
-  - Extensible: add new problem functions here as future sheets introduce new
-    models. Keep signatures tidy and NumPy‑friendly.
+  - `rhs_cubic`, `rhs_lorenz` (exercise 1).
+  - `rhs_logistic`, closed form `logistic_analytic`, and `rhs_forced_lorenz` (exercise 2).
 - `euler_project/plotting.py`
-  - Plotting utilities: `ensure_dir`, `savefig`, and the figure producers for
-    each experiment (parameter sweep, method comparison, Lorenz).
+  - Utilities (`ensure_dir`, `savefig`) and figure producers:
+    - exercise 1: parameter sweep, method comparison, Lorenz sensitivity;
+    - exercise 2: logistic comparison, convergence plot, forced Lorenz 3-D.
+- `euler_project/experiment1.py`
+  - Assignment 1 experiments (parameter sweep, LSODA comparison, Lorenz sensitivity).
+- `euler_project/experiment2.py`
+  - Assignment 2 experiments (logistic method comparison, convergence study, forced Lorenz with midpoint RK vs Euler). Runnable as a standalone module.
 - `euler_project/experiments.py`
-  - The orchestration layer/CLI entry point. It
-    - runs (b) parameter sweep (`run_parameter_study`),
-    - runs (c) method comparisons for `q = 10` and `q = 0.1`
-      (`run_method_comparison`),
-    - runs (d) Lorenz sensitivity (`run_lorenz_sensitivity`),
-    - saves individual figures to `figs/`,
-    - writes `answers.txt`, and
-    - builds `results.pdf` (plots then answers).
+  - Aggregator CLI to run everything and build per-run PDFs.
 
 ### Meta/Extensibility Guidelines
 - New integrators
-  - Add them to `euler_project/integrators.py` alongside Explicit Euler. Keep
-    the public API consistent (e.g., `implEuler(f, x0, T, tau)` or a class with
-    `.run()` that returns `(t, X)`).
+  - Add them to `euler_project/integrators.py`. Keep the public API consistent (class with `.run()` returning `(t, X)` and a small function wrapper).
 - New problems (future sheets)
-  - Implement additional right‑hand sides in `euler_project/problems.py`.
+  - Implement additional right-hand sides in `euler_project/problems.py`.
   - Prefer pure functions with NumPy arrays; document parameters and shapes.
 - New experiments
-  - Add a `run_*()` helper in `euler_project/experiments.py` that produces a
-    `matplotlib.figure.Figure` (and saves it via `savefig`).
-  - Compose figures into `results.pdf` by editing `_create_results_pdf()` order
-    or appending a new page.
-- Per‑run bookkeeping
-  - The driver always writes to `euler_project/runs/<timestamp>/` so multiple
-    runs never overwrite each other and can be shared/reviewed easily.
+  - Add a new `euler_project/experimentN.py` with `run_*` helpers and a `main()` that saves figures and builds PDFs. Also import it from `euler_project/experiments.py` to include in the �run everything� mode.
+- Per-run bookkeeping
+  - The drivers write to `euler_project/runs/<timestamp>/` so multiple runs never overwrite each other and can be shared/reviewed easily.
 
 ## Notes
 - Tested with Python 3.13, should work with 3.10+.
