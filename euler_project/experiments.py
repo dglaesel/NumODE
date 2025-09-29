@@ -97,8 +97,9 @@ def main() -> None:
     figures.append(fig_log_q1)
     fig_conv = run_convergence_study()
     figures.append(fig_conv)
-    fig_forced = run_forced_lorenz()
+    fig_forced, fig_diff = run_forced_lorenz()
     figures.append(fig_forced)
+    figures.append(fig_diff)
 
     # Export individual figures
     savefig(fig_param, figs_dir / "param_sweep_cubic")
@@ -110,6 +111,7 @@ def main() -> None:
     savefig(fig_log_q1, figs_dir / "logistic_q1")
     savefig(fig_conv, figs_dir / "convergence_logistic")
     savefig(fig_forced, figs_dir / "forced_lorenz_midpoint_vs_euler")
+    savefig(fig_diff, figs_dir / "forced_lorenz_difference")
 
     # Write canonical answers for exercise 1
     write_canonical_answers(run_dir / "answers.txt")
@@ -127,4 +129,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

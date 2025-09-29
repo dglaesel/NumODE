@@ -243,12 +243,13 @@ def plot_logistic_comparison(
     fig, ax = plt.subplots(figsize=(10.0, 6.0))
 
     # Numeric methods: match the sample style — solid, dashed, dotted
-    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+    # Explicit colors and linestyles to make curves unmistakable
+    palette = ["tab:blue", "tab:orange", "tab:green"]
     linestyles = ["-", "--", ":"]
     for idx, (X, lbl) in enumerate(zip(numeric_solutions, method_labels)):
-        clr = colors[idx % len(colors)] if colors else None
+        clr = palette[idx % len(palette)]
         ls = linestyles[idx % len(linestyles)]
-        ax.plot(t, X[:, 0], label=lbl, linewidth=DEFAULT_LW, linestyle=ls, color=clr)
+        ax.plot(t, X[:, 0], label=lbl, linewidth=2.6, linestyle=ls, color=clr)
 
     # Analytic solution as open circle markers
     y = analytic.reshape(-1)
@@ -295,7 +296,7 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         y = np.log2(e)
         # Fit y = m x + b
         m, b = np.polyfit(x, y, 1)
-        label = f"{name}"
+        label = f"{name} (slope≈{m:.2f})"
         clr = colors[i % len(colors)] if colors else None
         ax.plot(x, y, marker="o", markersize=6, linestyle="-", label=label, color=clr)
         # fitted line
@@ -306,6 +307,27 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
     ax.set_title(r"$\log_2,\log_2$ plot of the error for the three different RK methods")
     ax.grid(True, which="both")
     ax.legend(loc="lower left", frameon=True)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
+    return fig
+
+
+def plot_lorenz_difference(t: Array, X_rk: Array, t_euler: Array, X_euler: Array) -> Figure:
+    """Plot the norm of the difference between RK and explicit Euler vs time.
+
+    Assumes both trajectories share the same uniform grid; if their lengths
+    differ slightly, the plot uses the common prefix.
+    """
+
+    n = min(len(t), len(t_euler))
+    tt = t[:n]
+    diff = np.linalg.norm(X_rk[:n] - X_euler[:n], axis=1)
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.8))
+    ax.semilogy(tt, diff, color="crimson", linewidth=2.4)
+    ax.set_xlabel("time")
+    ax.set_ylabel(r"$\|X_{\mathrm{RK}} - X_{\mathrm{Euler}}\|$")
+    ax.set_title("Difference between midpoint RK and explicit Euler (forced Lorenz)")
+    ax.grid(True, which="both")
     fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
     return fig
 
@@ -356,4 +378,5 @@ __all__ += [
     "plot_logistic_comparison",
     "plot_convergence",
     "plot_forced_lorenz",
+    "plot_lorenz_difference",
 ]

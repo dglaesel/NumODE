@@ -23,6 +23,7 @@ from .plotting import (
     plot_logistic_comparison,
     ensure_dir,
     savefig,
+    plot_lorenz_difference,
 )
 from .problems import logistic_analytic, rhs_forced_lorenz, rhs_logistic
 
@@ -130,7 +131,7 @@ def run_convergence_study() -> Figure:
     return plot_convergence(taus, errors)
 
 
-def run_forced_lorenz() -> Figure:
+def run_forced_lorenz() -> tuple[Figure, Figure]:
     """Forced Lorenz system via midpoint RK vs explicit Euler."""
 
     T = 5.0
@@ -144,7 +145,9 @@ def run_forced_lorenz() -> Figure:
     t_rk, X_rk = exRungeKutta(f_forced, x0, T, tau, A2, b2, c2)
     t_eu, X_eu = explEuler(f_forced, x0, T, tau)
 
-    return plot_forced_lorenz(t_rk, X_rk, t_eu, X_eu)
+    fig3d = plot_forced_lorenz(t_rk, X_rk, t_eu, X_eu)
+    figdiff = plot_lorenz_difference(t_rk, X_rk, t_eu, X_eu)
+    return fig3d, figdiff
 
 
 __all__ = [
@@ -193,13 +196,15 @@ def main() -> None:
     figures.append(fig_log_q1)
     fig_conv = run_convergence_study()
     figures.append(fig_conv)
-    fig_forced = run_forced_lorenz()
+    fig_forced, fig_diff = run_forced_lorenz()
     figures.append(fig_forced)
+    figures.append(fig_diff)
 
     savefig(fig_log_q01, figs_dir / "logistic_q0p1")
     savefig(fig_log_q1, figs_dir / "logistic_q1")
     savefig(fig_conv, figs_dir / "convergence_logistic")
     savefig(fig_forced, figs_dir / "forced_lorenz_midpoint_vs_euler")
+    savefig(fig_diff, figs_dir / "forced_lorenz_difference")
 
     _create_results_pdf(run_dir, figures)
 
