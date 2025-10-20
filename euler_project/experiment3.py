@@ -110,7 +110,7 @@ def run_arctan_problem() -> tuple[Figure, Figure]:
     return fig_sol, fig_grid
 
 
-def run_tol_influence() -> tuple[Figure, Figure, Figure]:
+def run_tol_influence() -> tuple[Figure, Figure, Figure, Figure, Figure, dict[str, Array]]:
     """Task (c): effect of tolerance on approximations, grid and stepsizes."""
 
     x0 = np.array([np.arctan(-120.0)])
@@ -157,12 +157,17 @@ def run_tol_influence() -> tuple[Figure, Figure, Figure]:
     fig_grids = plot_time_grids(grids, labels, T, title="Adaptive grids for different tolerances")
     fig_h = plot_stepsizes_over_time(grids, labels, title="Step sizes over time for different TOL")
     # grid error curves
-    from .plotting import plot_error_curves, plot_runtime_vs_error
+    from .plotting import plot_error_curves, plot_runtime_vs_error, plot_tradeoff_table
 
     fig_err = plot_error_curves(err_curves, title="Grid error |x_ad - x_exact| for each TOL")
     # accuracy-efficiency trade-off: runtime vs max error
     tols = np.array(tolerances, dtype=float)
-    fig_trade = plot_runtime_vs_error(tols, np.array(runtimes), np.array(max_errors), np.array(nsteps))
+    runt_np = np.array(runtimes)
+    nsteps_np = np.array(nsteps)
+    maxerr_np = np.array(max_errors)
+    finalerr_np = np.array(final_errors)
+    fig_trade = plot_runtime_vs_error(tols, runt_np, maxerr_np, nsteps_np)
+    fig_table = plot_tradeoff_table(tols, runt_np, nsteps_np, maxerr_np, finalerr_np)
 
     metrics = {
         "tolerances": tols,
@@ -172,7 +177,7 @@ def run_tol_influence() -> tuple[Figure, Figure, Figure]:
         "final_error": np.array(final_errors),
     }
 
-    return fig_solutions, fig_grids, fig_h, fig_err, fig_trade, metrics
+    return fig_solutions, fig_grids, fig_h, fig_err, fig_trade, {**metrics, "fig_table": fig_table}
 
 
 def run_lorenz_adaptive() -> tuple[Figure, Figure]:
@@ -240,6 +245,9 @@ def main() -> None:
     figures.append(fig_c_h)
     figures.append(fig_c_err)
     figures.append(fig_trade)
+    # add table figure
+    if "fig_table" in metrics:
+        figures.append(metrics["fig_table"])  # type: ignore[index]
 
     fig_d_3d, fig_d_h = run_lorenz_adaptive()
     figures.append(fig_d_3d)
@@ -253,24 +261,9 @@ def main() -> None:
     savefig(fig_c_h, figs_dir / "c_stepsizes_vs_tol")
     savefig(fig_c_err, figs_dir / "c_grid_errors_vs_tol")
     savefig(fig_trade, figs_dir / "c_accuracy_vs_runtime")
-
-    # Save metrics CSV for trade-off table
-    import csv
-
-    table_path = run_dir / "tol_tradeoff_metrics.csv"
-    with table_path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.writer(fh)
-        writer.writerow(["TOL", "runtime_sec", "n_steps", "max_error", "final_error"])
-        for i in range(len(metrics["tolerances"])):
-            writer.writerow(
-                [
-                    f"{metrics['tolerances'][i]:.0e}",
-                    f"{metrics['runtime_sec'][i]:.6f}",
-                    int(metrics["n_steps"][i]),
-                    f"{metrics['max_error'][i]:.6e}",
-                    f"{metrics['final_error'][i]:.6e}",
-                ]
-            )
+    # save table figure
+    if "fig_table" in metrics:
+        savefig(metrics["fig_table"], figs_dir / "c_tradeoff_table")  # type: ignore[index]
     savefig(fig_d_3d, figs_dir / "d_lorenz_adaptive_3d")
     savefig(fig_d_h, figs_dir / "d_lorenz_stepsizes")
 

@@ -566,3 +566,54 @@ def plot_runtime_vs_error(
 
 
 __all__ += ["plot_error_curves", "plot_runtime_vs_error"]
+
+
+def plot_tradeoff_table(
+    tols: Array,
+    runtimes: Array,
+    steps: Array,
+    max_errors: Array,
+    final_errors: Array,
+    title: str = "TOL trade-off metrics (adaptive RK)",
+) -> Figure:
+    """Render a compact table summarizing accuracy vs efficiency metrics.
+
+    Columns: TOL, runtime [s], steps, max error, final error.
+    """
+
+    tols = np.asarray(tols).reshape(-1)
+    runtimes = np.asarray(runtimes).reshape(-1)
+    steps = np.asarray(steps).reshape(-1)
+    max_errors = np.asarray(max_errors).reshape(-1)
+    final_errors = np.asarray(final_errors).reshape(-1)
+
+    cell_text: list[list[str]] = []
+    for i in range(len(tols)):
+        row = [
+            f"{tols[i]:.0e}",
+            f"{runtimes[i]:.6f}",
+            f"{int(steps[i])}",
+            f"{max_errors[i]:.3e}",
+            f"{final_errors[i]:.3e}",
+        ]
+        cell_text.append(row)
+
+    columns = ["TOL", "runtime [s]", "N steps", "max error", "final error"]
+
+    fig, ax = plt.subplots(figsize=(9.0, 3.8))
+    ax.axis("off")
+    ax.set_title(title, pad=12)
+    tbl = ax.table(
+        cellText=cell_text,
+        colLabels=columns,
+        loc="center",
+        cellLoc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(11)
+    tbl.scale(1.1, 1.3)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.15)
+    return fig
+
+
+__all__ += ["plot_tradeoff_table"]

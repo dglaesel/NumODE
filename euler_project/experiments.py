@@ -112,6 +112,8 @@ def main() -> None:
     figures.append(fig_c_h)
     figures.append(fig_c_err)
     figures.append(fig_trade)
+    if "fig_table" in metrics:
+        figures.append(metrics["fig_table"])  # type: ignore[index]
     fig_d_3d, fig_d_h = run_lorenz_adaptive()
     figures.append(fig_d_3d)
     figures.append(fig_d_h)
@@ -135,6 +137,8 @@ def main() -> None:
     savefig(fig_c_h, figs_dir / "ex3_c_stepsizes_vs_tol")
     savefig(fig_c_err, figs_dir / "ex3_c_grid_errors_vs_tol")
     savefig(fig_trade, figs_dir / "ex3_c_accuracy_vs_runtime")
+    if "fig_table" in metrics:
+        savefig(metrics["fig_table"], figs_dir / "ex3_c_tradeoff_table")  # type: ignore[index]
     savefig(fig_d_3d, figs_dir / "ex3_d_lorenz_adaptive_3d")
     savefig(fig_d_h, figs_dir / "ex3_d_lorenz_stepsizes")
 
