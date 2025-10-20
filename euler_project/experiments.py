@@ -103,9 +103,10 @@ def main() -> None:
     figures.append(fig_diff)
 
     # ---- Exercise 3 figures (adaptive embedded RK) ----
-    fig_b_sol, fig_b_grid = run_arctan_problem()
+    fig_b_sol, fig_b_grid, fig_b_steps = run_arctan_problem()
     figures.append(fig_b_sol)
     figures.append(fig_b_grid)
+    figures.append(fig_b_steps)
     fig_c_sol, fig_c_grid, fig_c_h, fig_c_err, fig_trade, metrics = run_tol_influence()
     figures.append(fig_c_sol)
     figures.append(fig_c_grid)
@@ -132,6 +133,7 @@ def main() -> None:
     # Exercise 3
     savefig(fig_b_sol, figs_dir / "ex3_b_adaptive_vs_refs")
     savefig(fig_b_grid, figs_dir / "ex3_b_adaptive_grid")
+    savefig(fig_b_steps, figs_dir / "ex3_b_adaptive_stepsize")
     savefig(fig_c_sol, figs_dir / "ex3_c_solutions_vs_tol")
     savefig(fig_c_grid, figs_dir / "ex3_c_grids_vs_tol")
     savefig(fig_c_h, figs_dir / "ex3_c_stepsizes_vs_tol")

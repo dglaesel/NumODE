@@ -644,3 +644,27 @@ def plot_tradeoff_table(
 
 
 __all__ += ["plot_tradeoff_table"]
+
+
+def plot_stepsize_single(grid: Array, title: str = "Adaptive stepsize") -> Figure:
+    """Single adaptive stepsize curve h_j vs t_j in a wide aspect ratio.
+
+    Uses a simple line plot to mimic the provided style.
+    """
+
+    g = np.asarray(grid, dtype=float)
+    if g.ndim != 1 or g.size < 2:
+        raise ValueError("grid must be 1-D with at least two points")
+    h = np.diff(g)
+    t = g[:-1]
+    fig, ax = plt.subplots(figsize=(16.0, 4.2))
+    ax.plot(t, h, color="C0", linewidth=1.8)
+    ax.set_xlabel("time")
+    ax.set_ylabel("stepsize")
+    ax.set_title(title)
+    ax.grid(False)
+    fig.subplots_adjust(bottom=0.16, left=0.06, right=0.99, top=0.9)
+    return fig
+
+
+__all__ += ["plot_stepsize_single"]

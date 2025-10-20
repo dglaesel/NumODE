@@ -26,6 +26,7 @@ from .plotting import (
     plot_stepsizes_over_time,
     plot_3d_single,
     plot_multi_approximations,
+    plot_stepsize_single,
 )
 from .problems import (
     rhs_cos2_arctan_problem,
@@ -65,7 +66,7 @@ def _butcher_bogacki_shampine_32() -> Tuple[Array, Array, Array, Array, int]:
 # --- Experiments --------------------------------------------------------------
 
 
-def run_arctan_problem() -> tuple[Figure, Figure]:
+def run_arctan_problem() -> tuple[Figure, Figure, Figure]:
     """Task (b): adaptive BS23 on the arctan problem with comparisons.
 
     Parameters as on the sheet: ``T=10``, ``tauMax=0.1``, ``rho=0.9``,
@@ -107,7 +108,8 @@ def run_arctan_problem() -> tuple[Figure, Figure]:
     )
 
     fig_grid = plot_time_grids([t_ad], ["adaptive grid"], T, title="Adaptive discretization points (BS23)")
-    return fig_sol, fig_grid
+    fig_steps = plot_stepsize_single(t_ad, title="Adaptive stepsize")
+    return fig_sol, fig_grid, fig_steps
 
 
 def run_tol_influence() -> tuple[Figure, Figure, Figure, Figure, Figure, dict[str, Array]]:
@@ -235,9 +237,10 @@ def main() -> None:
     run_dir, figs_dir = _make_run_dirs()
     figures: list[Figure] = []
 
-    fig_b_sol, fig_b_grid = run_arctan_problem()
+    fig_b_sol, fig_b_grid, fig_b_steps = run_arctan_problem()
     figures.append(fig_b_sol)
     figures.append(fig_b_grid)
+    figures.append(fig_b_steps)
 
     fig_c_sol, fig_c_grid, fig_c_h, fig_c_err, fig_trade, metrics = run_tol_influence()
     figures.append(fig_c_sol)
@@ -256,6 +259,7 @@ def main() -> None:
     # Export
     savefig(fig_b_sol, figs_dir / "b_adaptive_vs_refs")
     savefig(fig_b_grid, figs_dir / "b_adaptive_grid")
+    savefig(fig_b_steps, figs_dir / "b_adaptive_stepsize")
     savefig(fig_c_sol, figs_dir / "c_solutions_vs_tol")
     savefig(fig_c_grid, figs_dir / "c_grids_vs_tol")
     savefig(fig_c_h, figs_dir / "c_stepsizes_vs_tol")
