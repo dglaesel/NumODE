@@ -587,18 +587,44 @@ def plot_tradeoff_table(
     max_errors = np.asarray(max_errors).reshape(-1)
     final_errors = np.asarray(final_errors).reshape(-1)
 
+    # Baselines are taken from the first row (assumed TOL=1e-3)
+    rt0 = float(runtimes[0]) if len(runtimes) else 1.0
+    n0 = float(steps[0]) if len(steps) else 1.0
+    e0 = float(max_errors[0]) if len(max_errors) else 1.0
+    ef0 = float(final_errors[0]) if len(final_errors) else 1.0
+
+    def _ratio(val: float, base: float) -> str:
+        if base == 0.0:
+            return "–"
+        r = val / base
+        if r == 0:
+            return "0"
+        # Use compact formatting with up to 2 decimals
+        return f"×{r:.2f}"
+
     cell_text: list[list[str]] = []
     for i in range(len(tols)):
         row = [
             f"{tols[i]:.0e}",
-            f"{runtimes[i]:.6f}",
+            f"{runtimes[i]:.6f}", _ratio(float(runtimes[i]), rt0),
             f"{int(steps[i])}",
-            f"{max_errors[i]:.3e}",
-            f"{final_errors[i]:.3e}",
+            _ratio(float(steps[i]), n0),
+            f"{max_errors[i]:.3e}", _ratio(float(max_errors[i]), e0),
+            f"{final_errors[i]:.3e}", _ratio(float(final_errors[i]), ef0),
         ]
         cell_text.append(row)
 
-    columns = ["TOL", "runtime [s]", "N steps", "max error", "final error"]
+    columns = [
+        "TOL",
+        "runtime [s]",
+        "×",
+        "N steps",
+        "×",
+        "max error",
+        "×",
+        "final error",
+        "×",
+    ]
 
     fig, ax = plt.subplots(figsize=(9.0, 3.8))
     ax.axis("off")
@@ -610,8 +636,9 @@ def plot_tradeoff_table(
         cellLoc="center",
     )
     tbl.auto_set_font_size(False)
-    tbl.set_fontsize(11)
-    tbl.scale(1.1, 1.3)
+    tbl.set_fontsize(10.5)
+    # scale width a little to fit extra columns
+    tbl.scale(1.05, 1.22)
     fig.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.15)
     return fig
 
