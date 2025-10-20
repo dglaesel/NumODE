@@ -593,24 +593,24 @@ def plot_tradeoff_table(
     e0 = float(max_errors[0]) if len(max_errors) else 1.0
     ef0 = float(final_errors[0]) if len(final_errors) else 1.0
 
-    def _ratio(val: float, base: float) -> str:
+    def _ratio(val: float, base: float, dec: int = 2) -> str:
         if base == 0.0:
             return "–"
         r = val / base
         if r == 0:
             return "0"
-        # Use compact formatting with up to 2 decimals
-        return f"×{r:.2f}"
+        # Use compact formatting with configurable decimals
+        return f"×{r:.{dec}f}"
 
     cell_text: list[list[str]] = []
     for i in range(len(tols)):
         row = [
             f"{tols[i]:.0e}",
-            f"{runtimes[i]:.6f}", _ratio(float(runtimes[i]), rt0),
+            f"{runtimes[i]:.6f}", _ratio(float(runtimes[i]), rt0, dec=2),
             f"{int(steps[i])}",
-            _ratio(float(steps[i]), n0),
-            f"{max_errors[i]:.3e}", _ratio(float(max_errors[i]), e0),
-            f"{final_errors[i]:.3e}", _ratio(float(final_errors[i]), ef0),
+            _ratio(float(steps[i]), n0, dec=2),
+            f"{max_errors[i]:.3e}", _ratio(float(max_errors[i]), e0, dec=4),
+            f"{final_errors[i]:.3e}", _ratio(float(final_errors[i]), ef0, dec=4),
         ]
         cell_text.append(row)
 
