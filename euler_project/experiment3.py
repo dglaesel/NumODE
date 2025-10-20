@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Tuple
+from time import perf_counter
 
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
@@ -124,15 +125,29 @@ def run_tol_influence() -> tuple[Figure, Figure, Figure]:
     grids: list[Array] = []
     labels: list[str] = []
     curves: list[tuple[Array, Array, str]] = []
+    err_curves: list[tuple[Array, Array, str]] = []
+    runtimes: list[float] = []
+    nsteps: list[int] = []
+    max_errors: list[float] = []
+    final_errors: list[float] = []
 
     for tol in tolerances:
+        t0 = perf_counter()
         t_ad, X_ad = adaptive_embedded_rk(
             rhs_cos2_arctan_problem, x0, T, tauMax, rho, q, tol, A, b_high, b_low, c, p_error
         )
+        rt = perf_counter() - t0
+        runtimes.append(rt)
+        nsteps.append(len(t_ad) - 1)
         grids.append(t_ad)
         label = f"TOL={tol:g}"
         labels.append(label)
         curves.append((t_ad, X_ad, label))
+        # errors on the grid
+        e = np.abs(X_ad[:, 0] - arctan_analytic(t_ad))
+        err_curves.append((t_ad, e, label))
+        max_errors.append(float(np.max(e)))
+        final_errors.append(float(e[-1]))
 
     # Exact solution on a fine grid
     t_exact = np.linspace(0.0, T, 2000)
@@ -141,7 +156,23 @@ def run_tol_influence() -> tuple[Figure, Figure, Figure]:
     fig_solutions = plot_multi_approximations(curves, t_exact, x_exact, title="Approximations for various TOL")
     fig_grids = plot_time_grids(grids, labels, T, title="Adaptive grids for different tolerances")
     fig_h = plot_stepsizes_over_time(grids, labels, title="Step sizes over time for different TOL")
-    return fig_solutions, fig_grids, fig_h
+    # grid error curves
+    from .plotting import plot_error_curves, plot_runtime_vs_error
+
+    fig_err = plot_error_curves(err_curves, title="Grid error |x_ad - x_exact| for each TOL")
+    # accuracy-efficiency trade-off: runtime vs max error
+    tols = np.array(tolerances, dtype=float)
+    fig_trade = plot_runtime_vs_error(tols, np.array(runtimes), np.array(max_errors), np.array(nsteps))
+
+    metrics = {
+        "tolerances": tols,
+        "runtime_sec": np.array(runtimes),
+        "n_steps": np.array(nsteps),
+        "max_error": np.array(max_errors),
+        "final_error": np.array(final_errors),
+    }
+
+    return fig_solutions, fig_grids, fig_h, fig_err, fig_trade, metrics
 
 
 def run_lorenz_adaptive() -> tuple[Figure, Figure]:
@@ -203,10 +234,12 @@ def main() -> None:
     figures.append(fig_b_sol)
     figures.append(fig_b_grid)
 
-    fig_c_sol, fig_c_grid, fig_c_h = run_tol_influence()
+    fig_c_sol, fig_c_grid, fig_c_h, fig_c_err, fig_trade, metrics = run_tol_influence()
     figures.append(fig_c_sol)
     figures.append(fig_c_grid)
     figures.append(fig_c_h)
+    figures.append(fig_c_err)
+    figures.append(fig_trade)
 
     fig_d_3d, fig_d_h = run_lorenz_adaptive()
     figures.append(fig_d_3d)
@@ -218,6 +251,26 @@ def main() -> None:
     savefig(fig_c_sol, figs_dir / "c_solutions_vs_tol")
     savefig(fig_c_grid, figs_dir / "c_grids_vs_tol")
     savefig(fig_c_h, figs_dir / "c_stepsizes_vs_tol")
+    savefig(fig_c_err, figs_dir / "c_grid_errors_vs_tol")
+    savefig(fig_trade, figs_dir / "c_accuracy_vs_runtime")
+
+    # Save metrics CSV for trade-off table
+    import csv
+
+    table_path = run_dir / "tol_tradeoff_metrics.csv"
+    with table_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["TOL", "runtime_sec", "n_steps", "max_error", "final_error"])
+        for i in range(len(metrics["tolerances"])):
+            writer.writerow(
+                [
+                    f"{metrics['tolerances'][i]:.0e}",
+                    f"{metrics['runtime_sec'][i]:.6f}",
+                    int(metrics["n_steps"][i]),
+                    f"{metrics['max_error'][i]:.6e}",
+                    f"{metrics['final_error'][i]:.6e}",
+                ]
+            )
     savefig(fig_d_3d, figs_dir / "d_lorenz_adaptive_3d")
     savefig(fig_d_h, figs_dir / "d_lorenz_stepsizes")
 

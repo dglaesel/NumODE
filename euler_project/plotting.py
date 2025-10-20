@@ -509,3 +509,60 @@ def plot_multi_approximations(
 
 
 __all__ += ["plot_multi_approximations"]
+
+
+def plot_error_curves(
+    err_curves: list[tuple[Array, Array, str]],
+    title: str = "Grid error over time",
+) -> Figure:
+    """Plot absolute error vs time for several methods/tolerances.
+
+    err_curves: list of (t, err, label) tuples.
+    """
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.8))
+    for t, e, lab in err_curves:
+        ax.semilogy(t, e, label=lab)
+    ax.set_xlabel("time")
+    ax.set_ylabel("abs. error")
+    ax.set_title(title)
+    ax.grid(True, which="both")
+    ax.legend(loc="best", ncol=2)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
+    return fig
+
+
+def plot_runtime_vs_error(
+    tols: Array,
+    runtimes: Array,
+    errors: Array,
+    steps: Array | None = None,
+    title: str = "Accuracy vs. runtime (adaptive RK)",
+) -> Figure:
+    """Scatter of runtime (x) against error (y) for different tolerances.
+
+    - ``errors`` can be the max or final-time error.
+    - Points are annotated with the tolerance value; if ``steps`` is given,
+      it's included in the annotation.
+    """
+
+    tols = np.asarray(tols, dtype=float)
+    runtimes = np.asarray(runtimes, dtype=float)
+    errors = np.asarray(errors, dtype=float)
+
+    fig, ax = plt.subplots(figsize=(8.8, 5.2))
+    ax.loglog(runtimes, errors, marker="o", linestyle="-", color="tab:blue")
+    for i, (rt, er) in enumerate(zip(runtimes, errors)):
+        label = f"TOL={tols[i]:.0e}"
+        if steps is not None:
+            label += f"\nN={int(steps[i])}"
+        ax.annotate(label, (rt, er), textcoords="offset points", xytext=(6, 6))
+    ax.set_xlabel("runtime [s]")
+    ax.set_ylabel("error")
+    ax.set_title(title)
+    ax.grid(True, which="both")
+    fig.subplots_adjust(bottom=0.14, left=0.15, right=0.97, top=0.9)
+    return fig
+
+
+__all__ += ["plot_error_curves", "plot_runtime_vs_error"]
