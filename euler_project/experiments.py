@@ -22,6 +22,7 @@ from .experiment1 import (
     write_canonical_answers,
 )
 from .experiment2 import run_convergence_study, run_forced_lorenz, run_logistic_methods
+from .experiment3 import run_arctan_problem, run_tol_influence, run_lorenz_adaptive
 
 
 # Package root (euler_project/)
@@ -101,6 +102,18 @@ def main() -> None:
     figures.append(fig_forced)
     figures.append(fig_diff)
 
+    # ---- Exercise 3 figures (adaptive embedded RK) ----
+    fig_b_sol, fig_b_grid = run_arctan_problem()
+    figures.append(fig_b_sol)
+    figures.append(fig_b_grid)
+    fig_c_sol, fig_c_grid, fig_c_h = run_tol_influence()
+    figures.append(fig_c_sol)
+    figures.append(fig_c_grid)
+    figures.append(fig_c_h)
+    fig_d_3d, fig_d_h = run_lorenz_adaptive()
+    figures.append(fig_d_3d)
+    figures.append(fig_d_h)
+
     # Export individual figures
     savefig(fig_param, figs_dir / "param_sweep_cubic")
     savefig(fig_q10, figs_dir / "compare_q10")
@@ -112,6 +125,14 @@ def main() -> None:
     savefig(fig_conv, figs_dir / "convergence_logistic")
     savefig(fig_forced, figs_dir / "forced_lorenz_midpoint_vs_euler")
     savefig(fig_diff, figs_dir / "forced_lorenz_difference")
+    # Exercise 3
+    savefig(fig_b_sol, figs_dir / "ex3_b_adaptive_vs_refs")
+    savefig(fig_b_grid, figs_dir / "ex3_b_adaptive_grid")
+    savefig(fig_c_sol, figs_dir / "ex3_c_solutions_vs_tol")
+    savefig(fig_c_grid, figs_dir / "ex3_c_grids_vs_tol")
+    savefig(fig_c_h, figs_dir / "ex3_c_stepsizes_vs_tol")
+    savefig(fig_d_3d, figs_dir / "ex3_d_lorenz_adaptive_3d")
+    savefig(fig_d_h, figs_dir / "ex3_d_lorenz_stepsizes")
 
     # Write canonical answers for exercise 1
     write_canonical_answers(run_dir / "answers.txt")

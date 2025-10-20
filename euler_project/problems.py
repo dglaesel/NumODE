@@ -101,10 +101,34 @@ def rhs_forced_lorenz(
     )
 
 
+def rhs_cos2_arctan_problem(t: float, x: Array) -> Array:
+    """Nonlinear scalar ODE ``x'(t) = 30 cos^2(x(t))``.
+
+    Designed for the exercise where the exact solution is
+    ``x(t) = arctan(30 t - 120)`` with initial value ``x(0) = arctan(-120)``.
+    Works element-wise for vector ``x`` as well.
+    """
+
+    _ = t
+    return 30.0 * np.cos(x) ** 2
+
+
+def arctan_analytic(t: Array | float) -> Array:
+    """Exact solution ``x(t) = arctan(30 t - 120)``.
+
+    Returns an array broadcast to the shape of ``t``.
+    """
+
+    tt = np.asarray(t, dtype=float)
+    return np.arctan(30.0 * tt - 120.0)
+
+
 __all__ = [
     "rhs_cubic",
     "rhs_lorenz",
     "rhs_logistic",
     "logistic_analytic",
     "rhs_forced_lorenz",
+    "rhs_cos2_arctan_problem",
+    "arctan_analytic",
 ]

@@ -391,3 +391,121 @@ __all__ += [
     "plot_forced_lorenz",
     "plot_lorenz_difference",
 ]
+
+
+def plot_adaptive_solution(
+    t_ad: Array,
+    X_ad: Array,
+    t_eu: Array,
+    X_eu: Array,
+    t_low: Array,
+    X_low: Array,
+    t_exact: Array,
+    x_exact: Array,
+    title: str = "Adaptive RK vs. references",
+) -> Figure:
+    """Overlay adaptive RK, explicit Euler, low-order RK and exact solution."""
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    ax.plot(t_exact, x_exact, color="black", label="exact", linewidth=2.6)
+    ax.plot(t_eu, X_eu[:, 0], label="explicit Euler (tau=0.1)", linestyle=":")
+    ax.plot(t_low, X_low[:, 0], label="Bogacki–Shampine low (tau=0.1)", linestyle="--")
+    ax.plot(t_ad, X_ad[:, 0], label="adaptive embedded RK", color="tab:orange")
+    ax.set_xlabel("time")
+    ax.set_ylabel("x(t)")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
+    return fig
+
+
+def plot_time_grids(grids: list[Array], labels: list[str], T: float, title: str = "Adaptive time grids") -> Figure:
+    """Show discretization points for several time grids on one axis.
+
+    Renders each grid as vertical tick marks on a baseline at different y-levels.
+    """
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.2))
+    y0 = 0.0
+    dy = 1.0
+    for i, (g, lab) in enumerate(zip(grids, labels)):
+        y = y0 + i * dy
+        ax.vlines(g, y - 0.35, y + 0.35, color=f"C{i}", alpha=0.9, label=lab)
+    ax.set_xlim(0.0, float(T))
+    ax.set_yticks([y0 + i * dy for i in range(len(grids))])
+    ax.set_yticklabels(labels)
+    ax.set_xlabel("time")
+    ax.set_title(title)
+    ax.grid(True, axis="x")
+    fig.subplots_adjust(bottom=0.16, left=0.16, right=0.97, top=0.9)
+    return fig
+
+
+def plot_stepsizes_over_time(grids: list[Array], labels: list[str], title: str = "Step sizes over time") -> Figure:
+    """Plot step sizes h_j = t_{j+1} - t_j against t_j for several grids."""
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.8))
+    for i, (g, lab) in enumerate(zip(grids, labels)):
+        if len(g) >= 2:
+            h = np.diff(g)
+            ax.step(g[:-1], h, where="post", label=lab)
+    ax.set_xlabel("time")
+    ax.set_ylabel("step size")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best", ncol=2)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
+    return fig
+
+
+def plot_3d_single(t: Array, X: Array, title: str = "Adaptive RK trajectory (Lorenz)") -> Figure:
+    """3D trajectory without comparison curve."""
+
+    fig = plt.figure(figsize=(9.0, 7.2))
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot(X[:, 0], X[:, 1], X[:, 2], color="tab:orange", label="embedded RK")
+    ax.set_xlabel("$x_1$")
+    ax.set_ylabel("$x_2$")
+    ax.set_zlabel("$x_3$")
+    ax.set_title(title)
+    ax.view_init(elev=22, azim=-45)
+    fig.subplots_adjust(bottom=0.08, left=0.02, right=1.0, top=0.93)
+    return fig
+
+
+__all__ += [
+    "plot_adaptive_solution",
+    "plot_time_grids",
+    "plot_stepsizes_over_time",
+    "plot_3d_single",
+]
+
+
+def plot_multi_approximations(
+    curves: list[tuple[Array, Array, str]],
+    t_exact: Array,
+    x_exact: Array,
+    title: str = "Adaptive solutions for various TOL",
+) -> Figure:
+    """Overlay multiple solution curves with exact solution.
+
+    Parameters
+    - curves: list of tuples (t, X, label) where X is shaped (n, d); uses first component.
+    - t_exact, x_exact: reference solution to overlay.
+    """
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    ax.plot(t_exact, x_exact, color="black", linewidth=2.6, label="exact")
+    for i, (t, X, lab) in enumerate(curves):
+        ax.plot(t, X[:, 0], label=lab)
+    ax.set_xlabel("time")
+    ax.set_ylabel("x(t)")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best", ncol=2)
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.9)
+    return fig
+
+
+__all__ += ["plot_multi_approximations"]
