@@ -9,3 +9,6 @@ Thumbs.db
 euler_project/__pycache__/
 euler_project/figs/*.png
 euler_project/runs/
+
+# Windows reserved device that might appear in listings
+CON
