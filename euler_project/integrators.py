@@ -76,7 +76,6 @@ class ImplicitEuler:
         tau: float,
         *,
         solver: str = "root",
-        solver_kwargs: dict | None = None,
     ) -> None:
         if tau <= 0:
             raise ValueError("tau > 0 required")
@@ -92,7 +91,6 @@ class ImplicitEuler:
         self.tau = float(tau)
         self._arity_is_unary = len(inspect.signature(f).parameters) == 1
         self._solver = solver
-        self._solver_kwargs = dict(solver_kwargs or {})
 
     def _rhs(self, t: float, x: Array) -> Array:
         if self._arity_is_unary:
@@ -119,9 +117,7 @@ class ImplicitEuler:
                 raise RuntimeError(f"fsolve failed (ier={ier})")
             return y
         else:
-            kwargs = {"method": "hybr"}
-            kwargs.update(self._solver_kwargs)
-            res = _opt.root(G, x_guess, **kwargs)
+            res = _opt.root(G, x_guess, method="hybr")
             if not res.success:
                 raise RuntimeError(f"root() failed at t={t_np1:.6g}: {res.message}")
             return np.asarray(res.x, dtype=float).reshape(d)
@@ -147,11 +143,10 @@ def implicitEuler(
     tau: float,
     *,
     solver: str = "root",
-    solver_kwargs: dict | None = None,
 ) -> Tuple[Array, Array]:
     """Wrapper for :class:`ImplicitEuler` (exercise 4 API)."""
 
-    return ImplicitEuler(f, x0, T, tau, solver=solver, solver_kwargs=solver_kwargs).run()
+    return ImplicitEuler(f, x0, T, tau, solver=solver).run()
 
 
 class ImplicitEulerLinear:

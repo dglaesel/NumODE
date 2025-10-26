@@ -108,7 +108,7 @@ def run_lorenz_implicit(
     """Integrate the Lorenz system with implicit Euler and plot in 3D."""
 
     x0_arr = np.asarray(x0, dtype=float).reshape(3)
-    t, X = implicitEuler(rhs_lorenz, x0_arr, T, tau, solver="root", solver_kwargs={"xtol": 1e-10})
+    t, X = implicitEuler(rhs_lorenz, x0_arr, T, tau)
     fig3d = plot_3d_single(t, X, title="Lorenz trajectory (implicit Euler)")
     return fig3d
 
@@ -180,4 +180,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
