@@ -6,6 +6,6 @@ __pycache__/
 Thumbs.db
 
 # Project-specific generated outputs
- euler_project/__pycache__/
- euler_project/figs/*.png
- euler_project/runs/
+euler_project/__pycache__/
+euler_project/figs/*.png
+euler_project/runs/

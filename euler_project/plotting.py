@@ -668,3 +668,34 @@ def plot_stepsize_single(grid: Array, title: str = "Adaptive stepsize") -> Figur
 
 
 __all__ += ["plot_stepsize_single"]
+
+
+def plot_family_solutions(
+    t: Array,
+    Xs: list[Array],
+    labels: list[str],
+    *,
+    title: str,
+    xstar: float | None = None,
+) -> Figure:
+    """Overlay several solution curves for the same grid.
+
+    Designed for exercise 4(c): show five trajectories for different starting
+    points around a fixed point, for either explicit or implicit Euler.
+    """
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.0))
+    for X, lab in zip(Xs, labels):
+        ax.plot(t, X[:, 0], label=lab, linewidth=DEFAULT_LW)
+    if xstar is not None:
+        ax.axhline(xstar, color="0.4", linestyle="--", linewidth=1.2, alpha=0.7)
+    ax.set_xlabel("time")
+    ax.set_ylabel("x(t)")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.90)
+    return fig
+
+
+__all__ += ["plot_family_solutions"]

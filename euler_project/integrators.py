@@ -12,6 +12,7 @@ import inspect
 from typing import Callable, Iterable, Tuple
 
 import numpy as np
+from scipy import optimize as _opt
 
 Array = np.ndarray
 
@@ -57,6 +58,187 @@ def explEuler(f: Callable, x0: Iterable[float], T: float, tau: float) -> Tuple[A
     """Assignment 2.3(a) wrapper."""
 
     return ExplicitEuler(f, x0, T, tau).run()
+
+
+class ImplicitEuler:
+    """Implicit Euler for general (possibly nonlinear) IVPs.
+
+    Solves the step equation x_{n+1} = x_n + h f(t_{n+1}, x_{n+1}) using
+    SciPy's nonlinear solvers. Works for autonomous ``f(x)`` and
+    non-autonomous ``f(t, x)``; the arity is detected automatically.
+    """
+
+    def __init__(
+        self,
+        f: Callable,
+        x0: Iterable[float],
+        T: float,
+        tau: float,
+        *,
+        solver: str = "root",
+        solver_kwargs: dict | None = None,
+    ) -> None:
+        if tau <= 0:
+            raise ValueError("tau > 0 required")
+        if T <= 0:
+            raise ValueError("T > 0 required")
+        x = np.atleast_1d(np.array(x0, dtype=float))
+        if x.ndim != 1:
+            raise ValueError("x0 must be 1-D")
+
+        self.f = f
+        self.x0 = x
+        self.T = float(T)
+        self.tau = float(tau)
+        self._arity_is_unary = len(inspect.signature(f).parameters) == 1
+        self._solver = solver
+        self._solver_kwargs = dict(solver_kwargs or {})
+
+    def _rhs(self, t: float, x: Array) -> Array:
+        if self._arity_is_unary:
+            val = self.f(x)
+        else:
+            val = self.f(t, x)
+        return np.asarray(val, dtype=float).reshape(-1)
+
+    def _solve_step(self, t_np1: float, x_n: Array, h: float) -> Array:
+        d = x_n.size
+        # explicit Euler predictor as initial guess
+        f_n = self._rhs(t_np1 - h, x_n)
+        x_guess = x_n + h * f_n
+
+        def G(y: Array) -> Array:
+            y = np.asarray(y, dtype=float).reshape(d)
+            return y - x_n - h * self._rhs(t_np1, y)
+
+        if self._solver == "fsolve":
+            sol = _opt.fsolve(G, x_guess, full_output=True)
+            y = np.asarray(sol[0], dtype=float).reshape(d)
+            ier = sol[2]
+            if ier != 1:
+                raise RuntimeError(f"fsolve failed (ier={ier})")
+            return y
+        else:
+            kwargs = {"method": "hybr"}
+            kwargs.update(self._solver_kwargs)
+            res = _opt.root(G, x_guess, **kwargs)
+            if not res.success:
+                raise RuntimeError(f"root() failed at t={t_np1:.6g}: {res.message}")
+            return np.asarray(res.x, dtype=float).reshape(d)
+
+    def run(self) -> Tuple[Array, Array]:
+        d = self.x0.size
+        n_steps = int(np.floor(self.T / self.tau))
+        if n_steps < 1:
+            raise ValueError("integration horizon too short")
+        t = self.tau * np.arange(n_steps + 1, dtype=float)
+        X = np.empty((n_steps + 1, d), dtype=float)
+        X[0] = self.x0
+        for k in range(n_steps):
+            t_np1 = t[k + 1]
+            X[k + 1] = self._solve_step(t_np1, X[k], self.tau)
+        return t, X
+
+
+def implicitEuler(
+    f: Callable,
+    x0: Iterable[float],
+    T: float,
+    tau: float,
+    *,
+    solver: str = "root",
+    solver_kwargs: dict | None = None,
+) -> Tuple[Array, Array]:
+    """Wrapper for :class:`ImplicitEuler` (exercise 4 API)."""
+
+    return ImplicitEuler(f, x0, T, tau, solver=solver, solver_kwargs=solver_kwargs).run()
+
+
+class ImplicitEulerLinear:
+    """Implicit Euler specialized for linear/affine RHS.
+
+    Handles problems of the form ``x' = A(t) x + b(t)`` where ``A`` and ``b``
+    may be functions of time or constants. Each step solves
+
+        (I - h A(t_{n+1})) x_{n+1} = x_n + h b(t_{n+1})
+
+    via a direct linear solve. This avoids nonlinear iterations.
+    """
+
+    def __init__(
+        self,
+        A: np.ndarray | Callable[[float], np.ndarray],
+        b: np.ndarray | Callable[[float], np.ndarray] | None,
+        x0: Iterable[float],
+        T: float,
+        tau: float,
+    ) -> None:
+        if tau <= 0:
+            raise ValueError("tau > 0 required")
+        if T <= 0:
+            raise ValueError("T > 0 required")
+        x = np.atleast_1d(np.array(x0, dtype=float))
+        if x.ndim != 1:
+            raise ValueError("x0 must be 1-D")
+        self.x0 = x
+        self.T = float(T)
+        self.tau = float(tau)
+        self._A = A
+        self._b = b
+
+    def _A_of(self, t: float) -> np.ndarray:
+        A = self._A(t) if callable(self._A) else self._A
+        A = np.asarray(A, dtype=float)
+        if A.ndim != 2 or A.shape[0] != A.shape[1]:
+            raise ValueError("A must be square (dxd)")
+        return A
+
+    def _b_of(self, t: float, d: int) -> np.ndarray:
+        if self._b is None:
+            return np.zeros(d, dtype=float)
+        b = self._b(t) if callable(self._b) else self._b
+        b = np.asarray(b, dtype=float).reshape(-1)
+        if b.size != d:
+            raise ValueError("b must have size d")
+        return b
+
+    def run(self) -> Tuple[Array, Array]:
+        d = self.x0.size
+        n_steps = int(np.floor(self.T / self.tau))
+        if n_steps < 1:
+            raise ValueError("integration horizon too short")
+        t = self.tau * np.arange(n_steps + 1, dtype=float)
+        X = np.empty((n_steps + 1, d), dtype=float)
+        X[0] = self.x0
+        I = np.eye(d, dtype=float)
+        for k in range(n_steps):
+            t_np1 = t[k + 1]
+            A = self._A_of(t_np1)
+            b = self._b_of(t_np1, d)
+            M = I - self.tau * A
+            rhs = X[k] + self.tau * b
+            X[k + 1] = np.linalg.solve(M, rhs)
+        return t, X
+
+
+def implicitEuler_linear(
+    A: np.ndarray | Callable[[float], np.ndarray],
+    b: np.ndarray | Callable[[float], np.ndarray] | None,
+    x0: Iterable[float],
+    T: float,
+    tau: float,
+) -> Tuple[Array, Array]:
+    """Wrapper for :class:`ImplicitEulerLinear`.
+
+    Examples
+    --------
+    Linear test equation y' = lambda y:
+    >>> import numpy as np
+    >>> lam = -3.0
+    >>> A = np.array([[lam]])
+    >>> t, X = implicitEuler_linear(A, None, [1.0], 1.0, 0.1)
+    """
+    return ImplicitEulerLinear(A, b, x0, T, tau).run()
 
 class ExplicitRungeKutta:
     """Generic explicit Runge–Kutta (ERK) method.

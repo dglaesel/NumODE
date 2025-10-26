@@ -23,6 +23,7 @@ from .experiment1 import (
 )
 from .experiment2 import run_convergence_study, run_forced_lorenz, run_logistic_methods
 from .experiment3 import run_arctan_problem, run_tol_influence, run_lorenz_adaptive
+from .experiment4 import run_fixed_point_families, run_lorenz_implicit
 
 
 # Package root (euler_project/)
@@ -119,6 +120,13 @@ def main() -> None:
     figures.append(fig_d_3d)
     figures.append(fig_d_h)
 
+    # ---- Exercise 4 figures (implicit Euler) ----
+    figs_c = run_fixed_point_families(q=9.0, T=2.0, tau=0.05)
+    for fig in figs_c:
+        figures.append(fig)
+    fig_d_imp = run_lorenz_implicit()
+    figures.append(fig_d_imp)
+
     # Export individual figures
     savefig(fig_param, figs_dir / "param_sweep_cubic")
     savefig(fig_q10, figs_dir / "compare_q10")
@@ -143,6 +151,19 @@ def main() -> None:
         savefig(metrics["fig_table"], figs_dir / "ex3_c_tradeoff_table")  # type: ignore[index]
     savefig(fig_d_3d, figs_dir / "ex3_d_lorenz_adaptive_3d")
     savefig(fig_d_h, figs_dir / "ex3_d_lorenz_stepsizes")
+
+    # Exercise 4
+    names_c = [
+        "ex4_c_fixed_x0_explicit",
+        "ex4_c_fixed_x0_implicit",
+        "ex4_c_fixed_xminus_explicit",
+        "ex4_c_fixed_xminus_implicit",
+        "ex4_c_fixed_xplus_explicit",
+        "ex4_c_fixed_xplus_implicit",
+    ]
+    for fig, name in zip(figs_c, names_c):
+        savefig(fig, figs_dir / name)
+    savefig(fig_d_imp, figs_dir / "ex4_d_lorenz_implicit_3d")
 
     # Write canonical answers for exercise 1
     write_canonical_answers(run_dir / "answers.txt")

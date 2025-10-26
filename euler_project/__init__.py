@@ -5,6 +5,10 @@ from __future__ import annotations  # postpone evaluation of type hints (forward
 from .integrators import (
     ExplicitEuler,
     explEuler,
+    ImplicitEuler,
+    implicitEuler,
+    ImplicitEulerLinear,
+    implicitEuler_linear,
     ExplicitRungeKutta,
     exRungeKutta,
     EmbeddedRungeKuttaAdaptive,
@@ -23,6 +27,10 @@ from .problems import (
 __all__ = [
     "ExplicitEuler",
     "explEuler",
+    "ImplicitEuler",
+    "implicitEuler",
+    "ImplicitEulerLinear",
+    "implicitEuler_linear",
     "ExplicitRungeKutta",
     "exRungeKutta",
     "EmbeddedRungeKuttaAdaptive",
