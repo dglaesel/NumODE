@@ -169,6 +169,45 @@ def run_lorenz_forced_sin(
     return fig3d
 
 
+def make_lorenz_fixedpoint_table(
+    x0: Iterable[float] = (10.0, 5.0, 12.0),
+    T: float = 50.0,
+    tau: float = 1e-3,
+    a: float = 10.0,
+    b: float = 20.0,
+    c: float = 8.0 / 3.0,
+    sample_times: list[float] | None = None,
+) -> Figure:
+    """Create a table figure sampling the unforced Lorenz trajectory.
+
+    Shows distances to E0 and E± and indicates the nearest equilibrium.
+    """
+
+    if sample_times is None:
+        sample_times = [10.0, 20.0, 30.0, 40.0, 50.0]
+
+    x0_arr = np.asarray(x0, dtype=float)
+    f_unforced = lambda t, X: rhs_lorenz(t, X, a=a, b=b, c=c)
+    t_grid, X_grid = implicitEuler(f_unforced, x0_arr, T, tau)
+    ts = np.asarray(sample_times, dtype=float)
+    idx = np.clip((ts / tau).astype(int), 0, len(t_grid) - 1)
+    Xs = X_grid[idx]
+    S = np.sqrt(c * (b - 1.0))
+    equilibria = np.array([[0.0, 0.0, 0.0], [S, S, b - 1.0], [-S, -S, b - 1.0]])
+    footer = (
+        "Equilibria: "
+        + "E0=(0,0,0), E±=(±sqrt(c(b-1)), ±sqrt(c(b-1)), b-1)"
+        + f"; here a={a}, b={b}, c={c:.3f} => E±≈(±{S:.3f}, ±{S:.3f}, {b-1:.0f})"
+    )
+    return plot_lorenz_fixed_points_table(
+        ts,
+        Xs,
+        equilibria,
+        title="Unforced Lorenz: distances to equilibria over time",
+        footer=footer,
+    )
+
+
 # ---- CLI helpers -------------------------------------------------------------
 
 

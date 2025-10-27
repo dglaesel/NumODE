@@ -23,7 +23,13 @@ from .experiment1 import (
 )
 from .experiment2 import run_convergence_study, run_forced_lorenz, run_logistic_methods
 from .experiment3 import run_arctan_problem, run_tol_influence, run_lorenz_adaptive
-from .experiment4 import run_fixed_point_families, run_lorenz_implicit
+from .experiment4 import (
+    run_fixed_point_families,
+    run_lorenz_implicit,
+    run_lorenz_forced_const,
+    run_lorenz_forced_sin,
+    make_lorenz_fixedpoint_table,
+)
 
 
 # Package root (euler_project/)
@@ -125,7 +131,13 @@ def main() -> None:
     for fig in figs_c:
         figures.append(fig)
     fig_d_imp = run_lorenz_implicit()
+    fig_d_const = run_lorenz_forced_const()
+    fig_d_sin = run_lorenz_forced_sin()
+    fig_d_table = make_lorenz_fixedpoint_table()
     figures.append(fig_d_imp)
+    figures.append(fig_d_const)
+    figures.append(fig_d_sin)
+    figures.append(fig_d_table)
 
     # Export individual figures
     savefig(fig_param, figs_dir / "param_sweep_cubic")
@@ -164,6 +176,9 @@ def main() -> None:
     for fig, name in zip(figs_c, names_c):
         savefig(fig, figs_dir / name)
     savefig(fig_d_imp, figs_dir / "ex4_d_lorenz_implicit_3d")
+    savefig(fig_d_const, figs_dir / "ex4_d_lorenz_forcing_const_3d")
+    savefig(fig_d_sin, figs_dir / "ex4_d_lorenz_forcing_sin_3d")
+    savefig(fig_d_table, figs_dir / "ex4_d_lorenz_fixedpoint_table")
 
     # Write canonical answers for exercise 1
     write_canonical_answers(run_dir / "answers.txt")
