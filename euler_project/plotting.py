@@ -706,6 +706,7 @@ def plot_lorenz_fixed_points_table(
     X_samples: Array,
     equilibria: Array,
     title: str = "Lorenz fixed points and sampled states",
+    footer: str | None = None,
 ) -> Figure:
     """Render a table showing sampled states and distances to equilibria.
 
@@ -745,7 +746,11 @@ def plot_lorenz_fixed_points_table(
     tbl.auto_set_font_size(False)
     tbl.set_fontsize(10.0)
     tbl.scale(1.05, 1.18)
-    fig.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    # Optional explanatory footer under the table
+    if footer is None:
+        footer = r"$E_0=(0,0,0)$, $E_\pm=(\pm\sqrt{c(b-1)},\,\pm\sqrt{c(b-1)},\,b-1)$"
+    ax.text(0.5, 0.03, footer, ha="center", va="top", transform=ax.transAxes, fontsize=10.5)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.18)
     return fig
 
 

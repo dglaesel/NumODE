@@ -1,4 +1,4 @@
-"""Experiment set for programming exercise 4 (implicit Euler).
+﻿"""Experiment set for programming exercise 4 (implicit Euler).
 
 What is implemented here:
 
@@ -54,7 +54,7 @@ def run_fixed_point_families(
 ) -> list[Figure]:
     """Generate six figures as requested in (c).
 
-    For each fixed point x* in {0, ±sqrt(q)} we create two plots: one with the
+    For each fixed point x* in {0, Â±sqrt(q)} we create two plots: one with the
     explicit Euler trajectories and one with the implicit Euler trajectories.
     """
 
@@ -223,7 +223,18 @@ def main() -> None:
     # equilibria for unforced Lorenz
     S = np.sqrt(c * (b - 1.0))
     equilibria = np.array([[0.0, 0.0, 0.0], [S, S, b - 1.0], [-S, -S, b - 1.0]])
-    fig_table = plot_lorenz_fixed_points_table(ts, Xs, equilibria, title="Unforced Lorenz: distances to equilibria over time")
+    footer = (
+        "Equilibria: "
+        + "E0=(0,0,0), E±=(±sqrt(c(b-1)), ±sqrt(c(b-1)), b-1)"
+        + f"; here a={a}, b={b}, c={c:.3f} => E±≈(±{S:.3f}, ±{S:.3f}, {b-1:.0f})"
+    )
+    fig_table = plot_lorenz_fixed_points_table(
+        ts,
+        Xs,
+        equilibria,
+        title="Unforced Lorenz: distances to equilibria over time",
+        footer=footer,
+    )
     figures.append(fig_lorenz_unforced)
     figures.append(fig_lorenz_const)
     figures.append(fig_lorenz_sin)
@@ -260,3 +271,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
