@@ -29,7 +29,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.figure import Figure
 
 from .integrators import explEuler, implicitEuler
-from .plotting import ensure_dir, savefig, plot_family_solutions, plot_3d_single
+from .plotting import (
+    ensure_dir,
+    savefig,
+    plot_family_solutions,
+    plot_3d_single,
+    plot_lorenz_fixed_points_table,
+)
 from .problems import rhs_cubic, rhs_lorenz, rhs_forced_lorenz, rhs_forced_lorenz_const
 
 Array = np.ndarray
@@ -202,9 +208,26 @@ def main() -> None:
     fig_lorenz_unforced = run_lorenz_implicit()
     fig_lorenz_const = run_lorenz_forced_const()
     fig_lorenz_sin = run_lorenz_forced_sin()
+    # Additionally: create a time-series table to highlight fixed points (unforced)
+    # Integrate again to retrieve data for sampling
+    a, b, c = 10.0, 20.0, 8.0 / 3.0
+    x0_arr = np.asarray((10.0, 5.0, 12.0), dtype=float)
+    f_unforced = lambda t, X: rhs_lorenz(t, X, a=a, b=b, c=c)
+    T_table = 50.0
+    tau = 1e-3
+    t_grid, X_grid = implicitEuler(f_unforced, x0_arr, T_table, tau)
+    # sample a few times
+    ts = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    idx = np.clip((ts / tau).astype(int), 0, len(t_grid) - 1)
+    Xs = X_grid[idx]
+    # equilibria for unforced Lorenz
+    S = np.sqrt(c * (b - 1.0))
+    equilibria = np.array([[0.0, 0.0, 0.0], [S, S, b - 1.0], [-S, -S, b - 1.0]])
+    fig_table = plot_lorenz_fixed_points_table(ts, Xs, equilibria, title="Unforced Lorenz: distances to equilibria over time")
     figures.append(fig_lorenz_unforced)
     figures.append(fig_lorenz_const)
     figures.append(fig_lorenz_sin)
+    figures.append(fig_table)
 
     # Save
     # Families: save with systematic names
@@ -221,6 +244,7 @@ def main() -> None:
     savefig(fig_lorenz_unforced, figs_dir / "d_lorenz_unforced_3d")
     savefig(fig_lorenz_const,    figs_dir / "d_lorenz_forcing_const_3d")
     savefig(fig_lorenz_sin,      figs_dir / "d_lorenz_forcing_sin_3d")
+    savefig(fig_table,           figs_dir / "d_lorenz_fixedpoint_table")
 
     _create_results_pdf(run_dir, figures)
 

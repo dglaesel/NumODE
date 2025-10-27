@@ -699,3 +699,54 @@ def plot_family_solutions(
 
 
 __all__ += ["plot_family_solutions"]
+
+
+def plot_lorenz_fixed_points_table(
+    t_samples: Array,
+    X_samples: Array,
+    equilibria: Array,
+    title: str = "Lorenz fixed points and sampled states",
+) -> Figure:
+    """Render a table showing sampled states and distances to equilibria.
+
+    Columns: t, x1, x2, x3, dist(E0), dist(E+), dist(E-), nearest.
+    ``equilibria`` must be a (3, 3) array with rows [E0, E+, E-].
+    """
+
+    t_samples = np.asarray(t_samples, dtype=float).reshape(-1)
+    X_samples = np.asarray(X_samples, dtype=float)
+    eq = np.asarray(equilibria, dtype=float)
+    if X_samples.shape[0] != t_samples.size or X_samples.shape[1] != 3:
+        raise ValueError("X_samples must have shape (n, 3) and match t_samples length")
+    if eq.shape != (3, 3):
+        raise ValueError("equilibria must have shape (3, 3) -> [E0, E+, E-]")
+
+    def _dist(x, y):
+        return float(np.linalg.norm(x - y))
+
+    rows: list[list[str]] = []
+    for ti, xi in zip(t_samples, X_samples):
+        d0 = _dist(xi, eq[0])
+        dp = _dist(xi, eq[1])
+        dm = _dist(xi, eq[2])
+        nearest = np.argmin([d0, dp, dm])
+        lab = ["E0", "E+", "E-"][nearest]
+        rows.append([
+            f"{ti:6.2f}", f"{xi[0]:8.3f}", f"{xi[1]:8.3f}", f"{xi[2]:8.3f}",
+            f"{d0:8.3f}", f"{dp:8.3f}", f"{dm:8.3f}", lab,
+        ])
+
+    columns = ["t", "x1", "x2", "x3", "d(E0)", "d(E+)", "d(E-)", "nearest"]
+
+    fig, ax = plt.subplots(figsize=(9.5, 4.8))
+    ax.axis("off")
+    ax.set_title(title, pad=10)
+    tbl = ax.table(cellText=rows, colLabels=columns, loc="center", cellLoc="center")
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(10.0)
+    tbl.scale(1.05, 1.18)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    return fig
+
+
+__all__ += ["plot_lorenz_fixed_points_table"]
