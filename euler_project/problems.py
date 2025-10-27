@@ -101,6 +101,26 @@ def rhs_forced_lorenz(
     )
 
 
+def rhs_forced_lorenz_const(
+    t: float,
+    X: Array,
+    a: float = 10.0,
+    b: float = 25.0,
+    c: float = 8.0 / 3.0,
+    forcing_amplitude: float = 100.0,
+) -> Array:
+    """Lorenz 63 with constant forcing in x1' (epsilon(t) = A)."""
+
+    x1, x2, x3 = X
+    return np.array(
+        [
+            a * (x2 - x1) + forcing_amplitude,
+            b * x1 - x2 - x1 * x3,
+            -c * x3 + x1 * x2,
+        ],
+        dtype=float,
+    )
+
 def rhs_cos2_arctan_problem(t: float, x: Array) -> Array:
     """Nonlinear scalar ODE ``x'(t) = 30 cos^2(x(t))``.
 
@@ -129,6 +149,7 @@ __all__ = [
     "rhs_logistic",
     "logistic_analytic",
     "rhs_forced_lorenz",
+    "rhs_forced_lorenz_const",
     "rhs_cos2_arctan_problem",
     "arctan_analytic",
 ]

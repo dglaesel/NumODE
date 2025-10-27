@@ -30,7 +30,7 @@ from matplotlib.figure import Figure
 
 from .integrators import explEuler, implicitEuler
 from .plotting import ensure_dir, savefig, plot_family_solutions, plot_3d_single
-from .problems import rhs_cubic, rhs_lorenz
+from .problems import rhs_cubic, rhs_lorenz, rhs_forced_lorenz, rhs_forced_lorenz_const
 
 Array = np.ndarray
 
@@ -103,13 +103,63 @@ def run_fixed_point_families(
 
 
 def run_lorenz_implicit(
-    x0: Iterable[float] = (10.0, 5.0, 12.0), T: float = 5.0, tau: float = 1e-3
+    x0: Iterable[float] = (10.0, 5.0, 12.0),
+    T: float = 50.0,
+    tau: float = 1e-3,
+    a: float = 10.0,
+    b: float = 20.0,
+    c: float = 8.0 / 3.0,
 ) -> Figure:
-    """Integrate the Lorenz system with implicit Euler and plot in 3D."""
+    """Integrate the unforced Lorenz system with implicit Euler and plot in 3D."""
 
     x0_arr = np.asarray(x0, dtype=float).reshape(3)
-    t, X = implicitEuler(rhs_lorenz, x0_arr, T, tau)
-    fig3d = plot_3d_single(t, X, title="Lorenz trajectory (implicit Euler)")
+    f = lambda t, X: rhs_lorenz(t, X, a=a, b=b, c=c)
+    t, X = implicitEuler(f, x0_arr, T, tau)
+    fig3d = plot_3d_single(
+        t,
+        X,
+        title=f"Lorenz trajectory (implicit Euler, a={a}, b={b}, c={c}, unforced)",
+    )
+    return fig3d
+
+
+def run_lorenz_forced_const(
+    x0: Iterable[float] = (10.0, 5.0, 12.0),
+    T: float = 50.0,
+    tau: float = 1e-3,
+    a: float = 10.0,
+    b: float = 20.0,
+    c: float = 8.0 / 3.0,
+    A: float = 100.0,
+) -> Figure:
+    x0_arr = np.asarray(x0, dtype=float).reshape(3)
+    f = lambda t, X: rhs_forced_lorenz_const(t, X, a=a, b=b, c=c, forcing_amplitude=A)
+    t, X = implicitEuler(f, x0_arr, T, tau)
+    fig3d = plot_3d_single(
+        t,
+        X,
+        title=f"Lorenz (implicit, const forcing A={A}, a={a}, b={b}, c={c})",
+    )
+    return fig3d
+
+
+def run_lorenz_forced_sin(
+    x0: Iterable[float] = (10.0, 5.0, 12.0),
+    T: float = 50.0,
+    tau: float = 1e-3,
+    a: float = 10.0,
+    b: float = 20.0,
+    c: float = 8.0 / 3.0,
+    A: float = 100.0,
+) -> Figure:
+    x0_arr = np.asarray(x0, dtype=float).reshape(3)
+    f = lambda t, X: rhs_forced_lorenz(t, X, a=a, b=b, c=c, forcing_amplitude=A)
+    t, X = implicitEuler(f, x0_arr, T, tau)
+    fig3d = plot_3d_single(
+        t,
+        X,
+        title=f"Lorenz (implicit, sinusoidal forcing A={A}, a={a}, b={b}, c={c})",
+    )
     return fig3d
 
 
@@ -148,9 +198,13 @@ def main() -> None:
     figs_c = run_fixed_point_families(q=9.0, T=2.0, tau=0.05)
     figures.extend(figs_c)
 
-    # (d) Lorenz with implicit Euler (single 3D figure)
-    fig_lorenz = run_lorenz_implicit()
-    figures.append(fig_lorenz)
+    # (d) Lorenz with implicit Euler: unforced, constant forcing, sinusoidal forcing
+    fig_lorenz_unforced = run_lorenz_implicit()
+    fig_lorenz_const = run_lorenz_forced_const()
+    fig_lorenz_sin = run_lorenz_forced_sin()
+    figures.append(fig_lorenz_unforced)
+    figures.append(fig_lorenz_const)
+    figures.append(fig_lorenz_sin)
 
     # Save
     # Families: save with systematic names
@@ -164,7 +218,9 @@ def main() -> None:
     ]
     for fig, name in zip(figs_c, names_c):
         savefig(fig, figs_dir / name)
-    savefig(fig_lorenz, figs_dir / "d_lorenz_implicit_3d")
+    savefig(fig_lorenz_unforced, figs_dir / "d_lorenz_unforced_3d")
+    savefig(fig_lorenz_const,    figs_dir / "d_lorenz_forcing_const_3d")
+    savefig(fig_lorenz_sin,      figs_dir / "d_lorenz_forcing_sin_3d")
 
     _create_results_pdf(run_dir, figures)
 
