@@ -153,3 +153,33 @@ __all__ = [
     "rhs_cos2_arctan_problem",
     "arctan_analytic",
 ]
+
+
+def rhs_harmonic_oscillator(t: float, x: Array, alpha: float = 0.0) -> Array:
+    """2D (damped) harmonic oscillator.
+
+    System: x1' = x2,  x2' = -x1 - alpha x2.  ``alpha=0`` is undamped.
+    """
+
+    _ = t
+    x1, x2 = x
+    return np.array([x2, -x1 - alpha * x2], dtype=float)
+
+
+def oscillator_exact_undamped(t: Array | float) -> Array:
+    """Exact solution for the undamped oscillator with x(0)=(1,0).
+
+    Returns array with shape ``(..., 2)`` for array ``t`` or shape ``(2,)`` for
+    scalar ``t``.  The solution is (x1, x2) = (cos t, -sin t).
+    """
+
+    tt = np.asarray(t, dtype=float)
+    x1 = np.cos(tt)
+    x2 = -np.sin(tt)
+    if tt.ndim == 0:
+        return np.array([float(x1), float(x2)], dtype=float)
+    else:
+        return np.vstack([x1, x2]).T
+
+
+__all__ += ["rhs_harmonic_oscillator", "oscillator_exact_undamped"]

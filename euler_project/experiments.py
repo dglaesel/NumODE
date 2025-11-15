@@ -30,6 +30,11 @@ from .experiment4 import (
     run_lorenz_forced_sin,
     make_lorenz_fixedpoint_table,
 )
+from .experiment5 import (
+    run_stability_cubic,
+    run_oscillator_phase,
+    run_order_study,
+)
 
 
 # Package root (euler_project/)
@@ -139,6 +144,17 @@ def main() -> None:
     figures.append(fig_d_sin)
     figures.append(fig_d_table)
 
+    # ---- Exercise 5 figures (implicit RK and isometries) ----
+    fig_e2_all, fig_e2_zoom = run_stability_cubic()
+    figures.append(fig_e2_all)
+    figures.append(fig_e2_zoom)
+    fig_e3_undamped = run_oscillator_phase(alpha=0.0)
+    fig_e3_damped = run_oscillator_phase(alpha=0.02)
+    figures.append(fig_e3_undamped)
+    figures.append(fig_e3_damped)
+    fig_e4_order = run_order_study()
+    figures.append(fig_e4_order)
+
     # Export individual figures
     savefig(fig_param, figs_dir / "param_sweep_cubic")
     savefig(fig_q10, figs_dir / "compare_q10")
@@ -179,6 +195,13 @@ def main() -> None:
     savefig(fig_d_const, figs_dir / "ex4_d_lorenz_forcing_const_3d")
     savefig(fig_d_sin, figs_dir / "ex4_d_lorenz_forcing_sin_3d")
     savefig(fig_d_table, figs_dir / "ex4_d_lorenz_fixedpoint_table")
+
+    # Exercise 5
+    savefig(fig_e2_all, figs_dir / "ex5_task2_approximations_1d")
+    savefig(fig_e2_zoom, figs_dir / "ex5_task2_approximations_1d_zoom")
+    savefig(fig_e3_undamped, figs_dir / "ex5_task3_phase_undamped")
+    savefig(fig_e3_damped, figs_dir / "ex5_task3_phase_damped")
+    savefig(fig_e4_order, figs_dir / "ex5_task4_convergence_order")
 
     # Write canonical answers for exercise 1
     write_canonical_answers(run_dir / "answers.txt")

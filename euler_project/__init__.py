@@ -7,6 +7,9 @@ from .integrators import (
     explEuler,
     ImplicitEuler,
     implicitEuler,
+    ImplicitRungeKutta,
+    implicitRungeKutta,
+    implicitRK,
     ImplicitEulerLinear,
     implicitEuler_linear,
     ExplicitRungeKutta,
@@ -20,8 +23,11 @@ from .problems import (
     rhs_logistic,
     logistic_analytic,
     rhs_forced_lorenz,
+    rhs_forced_lorenz_const,
     rhs_cos2_arctan_problem,
     arctan_analytic,
+    rhs_harmonic_oscillator,
+    oscillator_exact_undamped,
 )
 
 __all__ = [
@@ -29,6 +35,9 @@ __all__ = [
     "explEuler",
     "ImplicitEuler",
     "implicitEuler",
+    "ImplicitRungeKutta",
+    "implicitRungeKutta",
+    "implicitRK",
     "ImplicitEulerLinear",
     "implicitEuler_linear",
     "ExplicitRungeKutta",
@@ -40,6 +49,9 @@ __all__ = [
     "rhs_logistic",
     "logistic_analytic",
     "rhs_forced_lorenz",
+    "rhs_forced_lorenz_const",
     "rhs_cos2_arctan_problem",
     "arctan_analytic",
+    "rhs_harmonic_oscillator",
+    "oscillator_exact_undamped",
 ]

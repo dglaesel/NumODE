@@ -577,6 +577,154 @@ def adaptive_embedded_rk(
     ).run()
 
 
+class ImplicitRungeKutta:
+    """Generic implicit Runge–Kutta (IRK) method.
+
+    Solves the stage equations
+
+        k_i = f(t_n + c_i h, x_n + h * sum_j a_{ij} k_j),   i = 1..s
+
+    for the unknown stage derivatives ``k_i`` using a nonlinear solver, and
+    then updates
+
+        x_{n+1} = x_n + h * sum_i b_i k_i.
+
+    The right-hand side ``f`` may be autonomous ``f(x)`` or non-autonomous
+    ``f(t, x)``; the arity is detected automatically.
+    """
+
+    def __init__(
+        self,
+        f: Callable,
+        x0: Iterable[float],
+        T: float,
+        tau: float,
+        A: Iterable[Iterable[float]],
+        b: Iterable[float],
+        c: Iterable[float],
+        *,
+        solver: str = "root",
+    ) -> None:
+        if tau <= 0:
+            raise ValueError("tau > 0 required")
+        if T <= 0:
+            raise ValueError("T > 0 required")
+
+        self.f = f
+        self.x0 = np.atleast_1d(np.array(x0, dtype=float))
+        if self.x0.ndim != 1:
+            raise ValueError("x0 must be 1-D")
+        self.T = float(T)
+        self.tau = float(tau)
+
+        A = np.asarray(A, dtype=float)
+        b = np.asarray(b, dtype=float).reshape(-1)
+        c = np.asarray(c, dtype=float).reshape(-1)
+        if not (b.size == c.size == A.shape[0] == A.shape[1]):
+            raise ValueError("A must be (s,s) and b,c length s")
+        self.A = A
+        self.b = b
+        self.c = c
+        self.s = int(c.size)
+
+        self._arity_is_unary = len(inspect.signature(f).parameters) == 1
+        self._solver = solver
+
+    def _rhs(self, t: float, x: Array) -> Array:
+        if self._arity_is_unary:
+            val = self.f(x)
+        else:
+            val = self.f(t, x)
+        return np.asarray(val, dtype=float).reshape(-1)
+
+    def _residual(self, Z: Array, t_n: float, x_n: Array, h: float) -> Array:
+        """Residual for stage states ``Z_i`` stacked into a vector.
+
+        We solve for stage states ``Z_i`` satisfying
+
+            Z = x_n + h * A * K,   with K_i = f(t_n + c_i h, Z_i).
+        """
+
+        d = x_n.size
+        Z = np.asarray(Z, dtype=float).reshape(self.s, d)
+        # Evaluate K_i from Z_i
+        K = np.empty_like(Z)
+        for i in range(self.s):
+            t_stage = t_n + self.c[i] * h
+            K[i] = self._rhs(t_stage, Z[i])
+        AZ = self.A @ K  # shape (s, d)
+        R = Z - (x_n + h * AZ)
+        return R.reshape(-1)
+
+    def _solve_stages(self, t_n: float, x_n: Array, h: float) -> Array:
+        d = x_n.size
+        # Initial guess for Z: explicit Euler predictor for the state
+        x_pred = x_n + h * self._rhs(t_n, x_n)
+        Z0 = np.tile(x_pred, self.s)
+
+        G = lambda Zvec: self._residual(Zvec, t_n, x_n, h)
+
+        if self._solver == "fsolve":
+            sol = _opt.fsolve(G, Z0, full_output=True)
+            Zvec = np.asarray(sol[0], dtype=float)
+            ier = sol[2]
+            if ier != 1:
+                raise RuntimeError(f"fsolve failed (ier={ier}) at t={t_n:.6g}")
+            Z = Zvec.reshape(self.s, d)
+        else:
+            res = _opt.root(G, Z0, method="hybr")
+            if not res.success:
+                raise RuntimeError(f"root() failed at t={t_n:.6g}: {res.message}")
+            Z = np.asarray(res.x, dtype=float).reshape(self.s, d)
+
+        # Recover K from Z
+        K = np.empty_like(Z)
+        for i in range(self.s):
+            t_stage = t_n + self.c[i] * h
+            K[i] = self._rhs(t_stage, Z[i])
+        return K
+
+    def run(self) -> Tuple[Array, Array]:
+        d = self.x0.size
+        n_steps = int(np.floor(self.T / self.tau))
+        if n_steps < 1:
+            raise ValueError("integration horizon too short")
+        t = self.tau * np.arange(n_steps + 1, dtype=float)
+        X = np.empty((n_steps + 1, d), dtype=float)
+        X[0] = self.x0
+
+        for n in range(n_steps):
+            t_n = t[n]
+            K = self._solve_stages(t_n, X[n], self.tau)
+            incr = np.zeros(d, dtype=float)
+            for i in range(self.s):
+                bi = self.b[i]
+                if bi != 0.0:
+                    incr += bi * K[i]
+            X[n + 1] = X[n] + self.tau * incr
+        return t, X
+
+
+def implicitRungeKutta(
+    f: Callable,
+    x0: Iterable[float],
+    T: float,
+    tau: float,
+    A: Iterable[Iterable[float]],
+    b: Iterable[float],
+    c: Iterable[float],
+    *,
+    solver: str = "root",
+) -> Tuple[Array, Array]:
+    """Convenience wrapper for :class:`ImplicitRungeKutta`."""
+
+    return ImplicitRungeKutta(f, x0, T, tau, A, b, c, solver=solver).run()
+
+
+# Short alias matching the exercise wording
+implicitRK = implicitRungeKutta
+
+
 __all__ = [
     "ExplicitEuler",
     "explEuler",
@@ -584,4 +732,7 @@ __all__ = [
     "exRungeKutta",
     "EmbeddedRungeKuttaAdaptive",
     "adaptive_embedded_rk",
+    "ImplicitRungeKutta",
+    "implicitRungeKutta",
+    "implicitRK",
 ]

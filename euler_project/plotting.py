@@ -755,3 +755,97 @@ def plot_lorenz_fixed_points_table(
 
 
 __all__ += ["plot_lorenz_fixed_points_table"]
+
+
+def plot_phase_overlay(
+    Xs: list[Array],
+    labels: list[str],
+    title: str = "Phase plot",
+) -> Figure:
+    """Overlay trajectories in the (x1, x2) phase plane.
+
+    Expects each array in ``Xs`` to have shape ``(n, 2)``.
+    """
+
+    fig, ax = plt.subplots(figsize=(7.5, 6.8))
+    for X, lab in zip(Xs, labels):
+        if X.shape[1] < 2:
+            raise ValueError("Each state must have at least two components")
+        ax.plot(X[:, 0], X[:, 1], label=lab, linewidth=DEFAULT_LW)
+    ax.set_xlabel("$x_1$")
+    ax.set_ylabel("$x_2$")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.12, left=0.12, right=0.97, top=0.92)
+    return fig
+
+
+__all__ += ["plot_phase_overlay"]
+
+
+def _apply_task2_styles(ax, lines):
+    """Apply line styles to match the provided examples.
+
+    Order assumed: explicit Euler, implicit Euler, trapezoidal, midpoint.
+    """
+
+    styles = [
+        dict(color="C0", linestyle="-"),
+        dict(color="C1", linestyle="-"),
+        dict(color="C2", linestyle="--"),
+        dict(color="C3", linestyle="--"),
+    ]
+    for ln, st in zip(lines, styles):
+        plt.setp(ln, **st)
+
+
+def plot_task2_approximations_1d(
+    t: Array,
+    Xs: list[Array],
+    labels: list[str],
+    title: str = "Different approximations - 1D",
+) -> Figure:
+    """Styled 1D overlay used for Exercise 5, Task 2."""
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.0))
+    lines = []
+    for X, lab in zip(Xs, labels):
+        ln, = ax.plot(t, X[:, 0], label=lab, linewidth=DEFAULT_LW)
+        lines.append(ln)
+    _apply_task2_styles(ax, lines)
+    ax.set_xlabel("time")
+    ax.set_ylabel("solution")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.14, left=0.12, right=0.97, top=0.90)
+    return fig
+
+
+__all__ += ["plot_task2_approximations_1d"]
+
+
+def plot_task3_phase(
+    Xs: list[Array],
+    labels: list[str],
+    title: str = "Harmonic Oscillator - 2D",
+) -> Figure:
+    """Styled phase plot to mirror the example look for Task 3."""
+
+    fig, ax = plt.subplots(figsize=(9.0, 7.2))
+    lines = []
+    for X, lab in zip(Xs, labels):
+        ln, = ax.plot(X[:, 0], X[:, 1], label=lab, linewidth=DEFAULT_LW)
+        lines.append(ln)
+    _apply_task2_styles(ax, lines)
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+    ax.set_title(title)
+    ax.grid(True)
+    ax.legend(loc="best")
+    fig.subplots_adjust(bottom=0.12, left=0.12, right=0.97, top=0.92)
+    return fig
+
+
+__all__ += ["plot_task3_phase"]
