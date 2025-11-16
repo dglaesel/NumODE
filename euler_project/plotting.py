@@ -793,7 +793,8 @@ def _apply_task2_styles(ax, lines):
     styles = [
         dict(color="C0", linestyle="-"),
         dict(color="C1", linestyle="-"),
-        dict(color="C2", linestyle="--"),
+        # make trapezoidal slightly thicker and dashed for visibility
+        dict(color="C2", linestyle="--", linewidth=DEFAULT_LW * 1.4),
         dict(color="C3", linestyle="--"),
     ]
     for ln, st in zip(lines, styles):

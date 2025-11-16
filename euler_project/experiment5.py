@@ -109,7 +109,6 @@ def run_stability_cubic(
     if fig_zoom.axes:
         ax = fig_zoom.axes[0]
         ax.set_xlim(1.0, 1.8)
-        ax.set_ylim(0.5, 1.2)
 
     return fig_all, fig_zoom
 
