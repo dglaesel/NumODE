@@ -90,7 +90,7 @@ def run_arctan_problem() -> tuple[Figure, Figure, Figure]:
     # Constant-step references for comparison
     t_eu, X_eu = exRungeKutta(rhs_cos2_arctan_problem, x0, T, 0.1, np.array([[0.0]]), np.array([1.0]), np.array([0.0]))
     t_low, X_low = exRungeKutta(rhs_cos2_arctan_problem, x0, T, 0.1, A, b_low, c)
-
+    #fixen nur 1 einmal laufen
     # Exact solution sampled on a fine grid for plotting
     t_exact = np.linspace(0.0, T, 2000)
     x_exact = arctan_analytic(t_exact)
