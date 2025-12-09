@@ -157,7 +157,7 @@ def plot_compare_methods(
 
 
 def plot_lorenz_with_timecolor(t: Array, X: Array, t2: Array, X2: Array) -> Figure:
-    """Plot Lorenz trajectories with clear contrast – no inset."""
+    """Plot Lorenz trajectories with clear contrast - no inset."""
 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection="3d")
@@ -193,7 +193,7 @@ def plot_lorenz_with_timecolor(t: Array, X: Array, t2: Array, X2: Array) -> Figu
 
 
 def plot_lorenz_separation(t: Array, X: Array, X2: Array) -> Figure:
-    """Plot the separation |ΔX| between two Lorenz trajectories over time."""
+    """Plot the separation |DeltaX| between two Lorenz trajectories over time."""
 
     sep = np.linalg.norm(X2 - X, axis=1)
     fig, ax = plt.subplots(figsize=(9, 4.5))
@@ -242,7 +242,7 @@ def plot_logistic_comparison(
 
     fig, ax = plt.subplots(figsize=(10.0, 6.0))
 
-    # Numeric methods: match the sample style — solid, dashed, dotted
+    # Numeric methods: match the sample style - solid, dashed, dotted
     # Explicit colors and linestyles to make curves unmistakable
     palette = ["tab:blue", "tab:orange", "tab:green"]
     linestyles = ["-", "--", ":"]
@@ -285,7 +285,7 @@ def plot_logistic_comparison(
 
 
 def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
-    """Log–log convergence plot with fitted slopes.
+    """Log-log convergence plot with fitted slopes.
 
     Plots ``log2(taus)`` vs ``log2(errors)``. Adds a linear fit per method and
     annotates the slope in the legend label.
@@ -307,7 +307,7 @@ def plot_convergence(taus: Array, errors: dict[str, Array]) -> Figure:
         y = np.log2(e)
         # Fit y = m x + b
         m, b = np.polyfit(x, y, 1)
-        label = f"{name} (slope≈{m:.2f})"
+        label = f"{name} (slope~{m:.2f})"
         clr = colors[i % len(colors)] if colors else None
         ax.plot(x, y, marker="o", markersize=6, linestyle="-", label=label, color=clr)
         # fitted line
@@ -349,7 +349,7 @@ def plot_forced_lorenz(
     t_euler: Array,
     X_euler: Array,
 ) -> Figure:
-    """3‑D trajectories for the forced Lorenz system (midpoint vs Euler)."""
+    """3-D trajectories for the forced Lorenz system (midpoint vs Euler)."""
 
     fig = plt.figure(figsize=(9.5, 7.2))
     ax = fig.add_subplot(111, projection="3d")
@@ -409,7 +409,7 @@ def plot_adaptive_solution(
     fig, ax = plt.subplots(figsize=(9.5, 5.2))
     ax.plot(t_exact, x_exact, color="black", label="exact", linewidth=2.6)
     ax.plot(t_eu, X_eu[:, 0], label="explicit Euler (tau=0.1)", linestyle=":")
-    ax.plot(t_low, X_low[:, 0], label="Bogacki–Shampine low (tau=0.1)", linestyle="--")
+    ax.plot(t_low, X_low[:, 0], label="Bogacki-Shampine low (tau=0.1)", linestyle="--")
     ax.plot(t_ad, X_ad[:, 0], label="adaptive embedded RK", color="tab:orange")
     ax.set_xlabel("time")
     ax.set_ylabel("x(t)")
@@ -595,12 +595,12 @@ def plot_tradeoff_table(
 
     def _ratio(val: float, base: float, dec: int = 2) -> str:
         if base == 0.0:
-            return "–"
+            return "-"
         r = val / base
         if r == 0:
             return "0"
         # Use compact formatting with configurable decimals
-        return f"×{r:.{dec}f}"
+        return f"x{r:.{dec}f}"
 
     cell_text: list[list[str]] = []
     for i in range(len(tols)):
@@ -617,13 +617,13 @@ def plot_tradeoff_table(
     columns = [
         "TOL",
         "runtime [s]",
-        "×",
+        "x",
         "N steps",
-        "×",
+        "x",
         "max error",
-        "×",
+        "x",
         "final error",
-        "×",
+        "x",
     ]
 
     fig, ax = plt.subplots(figsize=(9.0, 3.8))

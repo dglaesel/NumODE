@@ -2,7 +2,7 @@
 
 What is implemented:
 
-- (1) A generic implicit Runge–Kutta solver lives in
+- (1) A generic implicit Runge-Kutta solver lives in
   :mod:`euler_project.integrators` as :class:`ImplicitRungeKutta` with the
   wrappers :func:`implicitRungeKutta` and :func:`implicitRK`.
 - (2) Stability test on the cubic ODE x' = q x - x^3 using four methods:
@@ -10,7 +10,7 @@ What is implemented:
   midpoint rule; a zoomed-in variant is also provided.
 - (3) Phase plots for undamped and damped harmonic oscillators comparing the
   same four methods.
-- (4) Consistency-order study for the undamped oscillator via a log2–log2
+- (4) Consistency-order study for the undamped oscillator via a log2-log2
   plot; slopes are estimated by linear least squares.
 
 This module is runnable via
@@ -137,7 +137,7 @@ def run_oscillator_phase(
     ))
 
 
-# ---- (4) Consistency order via log2–log2 plot -------------------------------
+# ---- (4) Consistency order via log2-log2 plot -------------------------------
 
 
 def run_order_study(

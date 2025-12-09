@@ -111,7 +111,7 @@ def run_lorenz_sensitivity() -> tuple[Figure, Figure]:
 
 
 def write_canonical_answers(dest_path: Path) -> None:
-    """Write canonical answers (b–d) to `dest_path`."""
+    """Write canonical answers (b-d) to `dest_path`."""
 
     sections = [
         ("(b) Long-term behaviour as a function of q", ANSWERS["b"]),

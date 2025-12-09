@@ -1,4 +1,4 @@
-"""Experiment set for programming exercise 2 (Runge–Kutta methods).
+"""Experiment set for programming exercise 2 (Runge-Kutta methods).
 
 Provides logistic ODE comparisons, a convergence study, and a forced Lorenz
 simulation using the midpoint RK method versus explicit Euler.

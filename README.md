@@ -1,9 +1,9 @@
-# NumODE – Explicit/Embedded Runge–Kutta for ODEs
+# NumODE - Explicit and Implicit Runge-Kutta for ODEs
 
-Programming exercises 1–3 in one repo. It started with an Explicit Euler
-baseline and now includes a generic explicit Runge–Kutta integrator and an
-adaptive embedded RK solver (Bogacki–Shampine 3(2)) with step‑size control.
-Drivers create per‑run, timestamped results that are easy to review and share.
+Programming exercises 1-5 in one place. The code now covers explicit Euler,
+explicit Runge-Kutta, adaptive embedded RK (Bogacki-Shampine 3(2)),
+implicit Euler (general and linear) and a generic implicit Runge-Kutta solver.
+Drivers create per-run, timestamped results that are easy to review and share.
 
 ## Setup (Windows, PowerShell)
 1. Clone and enter the repo
@@ -24,19 +24,19 @@ Drivers create per‑run, timestamped results that are easy to review and share.
    ```powershell
    pip install -r requirements.txt
    ```
-5. Run all experiments (exercises 1 + 2 + 3)
+5. Run all experiments (exercises 1-5)
    ```powershell
    python -m euler_project.experiments
    ```
 
 ### Run a single experiment
-If you only want to run one exercise’s figures:
+If you only want to run one exercise:
 
 - Exercise 1 (original):
   ```powershell
   python -m euler_project.experiment1
   ```
-- Exercise 2 (Runge–Kutta):
+- Exercise 2 (Runge-Kutta):
   ```powershell
   python -m euler_project.experiment2
   ```
@@ -44,36 +44,52 @@ If you only want to run one exercise’s figures:
   ```powershell
   python -m euler_project.experiment3
   ```
+- Exercise 4 (implicit Euler):
+  ```powershell
+  python -m euler_project.experiment4
+  ```
+- Exercise 5 (implicit Runge-Kutta and oscillators):
+  ```powershell
+  python -m euler_project.experiment5
+  ```
 
 ## Output
-Every run creates a folder: `euler_project/runs/<YYYYMMDD-HHMMSS>/`
-- `figs/` - PNG and PDF for each plot
-- `all_plots.pdf` - concatenation of the raw Matplotlib figure pages
-- `answers.txt` - template for Exercise 1 answers (optional)
-- `results.pdf` - plots first, then the content of `answers.txt` (if present)
+Every run creates a folder under `euler_project/runs/` (the standalone drivers
+prefix the folder with `exN-<timestamp>`):
+- `figs/` - PNG and PDF for each plot.
+- `all_plots.pdf` - concatenation of the raw Matplotlib figure pages.
+- `answers.txt` - filled when running exercise 1 (aggregator only).
+- `results.pdf` - plots first, then `answers.txt` appended for exercise 1 runs.
 
 ## Project Architecture
 - `euler_project/integrators.py`
   - `ExplicitEuler` + `explEuler(f, x0, T, tau)`.
-  - `ExplicitRungeKutta` + `exRungeKutta(f, x0, T, tau, A, b, c)` (generic ERK driven by a Butcher tableau; supports autonomous and non‑autonomous RHS and vector states).
-  - `EmbeddedRungeKuttaAdaptive` + `adaptive_embedded_rk(f, x0, T, tauMax, rho, q, TOL, A, b_high, b_low, c, p_error)` implementing adaptive step‑size control using an embedded pair (used here with Bogacki–Shampine 3(2)). Returns `(t_grid, X_sol)`.
+  - `ExplicitRungeKutta` + `exRungeKutta(f, x0, T, tau, A, b, c)` (generic ERK driven by a Butcher tableau; supports autonomous and non-autonomous RHS and vector states).
+  - `EmbeddedRungeKuttaAdaptive` + `adaptive_embedded_rk(...)` (adaptive step-size control using an embedded pair; used with Bogacki-Shampine 3(2)).
+  - `ImplicitEuler` + `implicitEuler(...)` (nonlinear step solve) and `ImplicitEulerLinear` + `implicitEuler_linear(...)` for affine systems.
+  - `ImplicitRungeKutta` + `implicitRungeKutta(...)` and alias `implicitRK(...)` (generic IRK with configurable tableau and solver).
 - `euler_project/problems.py`
   - `rhs_cubic`, `rhs_lorenz` (exercise 1).
   - `rhs_logistic`, closed form `logistic_analytic`, and `rhs_forced_lorenz` (exercise 2).
   - `rhs_cos2_arctan_problem` and `arctan_analytic` (exercise 3b/c).
+  - `rhs_harmonic_oscillator` and `oscillator_exact_undamped` (exercise 5).
 - `euler_project/plotting.py`
-  - Utilities (`ensure_dir`, `savefig`) and figure producers for all three exercises (comparison plots, adaptive grids, step sizes, 3‑D Lorenz).
+  - Utilities (`ensure_dir`, `savefig`) and figure producers across all exercises (comparison plots, adaptive grids, step sizes, 3-D Lorenz, tables, phase plots).
 - `euler_project/experiment1.py`
   - Exercise 1 experiments (parameter sweep, LSODA comparison, Lorenz sensitivity).
 - `euler_project/experiment2.py`
   - Exercise 2 experiments (logistic method comparison, convergence study, forced Lorenz with midpoint RK vs Euler). Runnable as a standalone module.
 - `euler_project/experiment3.py`
   - Exercise 3 (adaptive):
-    - b) Arctan problem – compare adaptive BS23 vs Euler, BS(2) and exact; plus plot of adaptive time grid.
-    - c) TOL study – show approximations for TOL = 1e-3..1e-8, the chosen grids and the step sizes over time.
-    - d) Forced Lorenz – 3‑D trajectory (x1,x2,x3) and step sizes.
+    - b) Arctan problem - compare adaptive BS23 vs Euler, BS(2) and exact; plus plot of adaptive time grid.
+    - c) TOL study - show approximations for TOL = 1e-3..1e-8, the chosen grids and the step sizes over time.
+    - d) Forced Lorenz - 3-D trajectory (x1,x2,x3) and step sizes.
+- `euler_project/experiment4.py`
+  - Exercise 4 (implicit Euler): cubic fixed-point families (explicit vs implicit overlays) and Lorenz runs (unforced, constant forcing, sinusoidal forcing) plus a fixed-point distance table.
+- `euler_project/experiment5.py`
+  - Exercise 5 (implicit Runge-Kutta and oscillators): stability of the cubic ODE with four methods, oscillator phase portraits (undamped/damped), and a convergence-order study.
 - `euler_project/experiments.py`
-  - Aggregator CLI to run everything (ex1+ex2+ex3) and build per‑run PDFs.
+  - Aggregator CLI to run everything (ex1-ex5) and build per-run PDFs with answers appended for exercise 1.
 
 ### Meta/Extensibility Guidelines
 - New integrators

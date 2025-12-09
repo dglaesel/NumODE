@@ -80,7 +80,7 @@ perturbed to $5.01$; the 3D plot makes this divergence clearly visible.
 
 
 def answers_as_latex() -> str:
-    """Concatenate sections (b)–(d) as LaTeX for convenience."""
+    """Concatenate sections (b)-(d) as LaTeX for convenience."""
     return (
         r"\section*{Answer (b)}" + "\n" + ANSWERS["b"]
         + r"\section*{Answer (c)}" + "\n" + ANSWERS["c"]

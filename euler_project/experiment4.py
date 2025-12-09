@@ -1,4 +1,4 @@
-﻿"""Experiment set for programming exercise 4 (implicit Euler).
+"""Experiment set for programming exercise 4 (implicit Euler).
 
 What is implemented here:
 
@@ -54,7 +54,7 @@ def run_fixed_point_families(
 ) -> list[Figure]:
     """Generate six figures as requested in (c).
 
-    For each fixed point x* in {0, Â±sqrt(q)} we create two plots: one with the
+    For each fixed point x* in {0, +/-sqrt(q)} we create two plots: one with the
     explicit Euler trajectories and one with the implicit Euler trajectories.
     """
 
@@ -180,7 +180,7 @@ def make_lorenz_fixedpoint_table(
 ) -> Figure:
     """Create a table figure sampling the unforced Lorenz trajectory.
 
-    Shows distances to E0 and E± and indicates the nearest equilibrium.
+    Shows distances to E0 and E+/- and indicates the nearest equilibrium.
     """
 
     if sample_times is None:
@@ -196,8 +196,8 @@ def make_lorenz_fixedpoint_table(
     equilibria = np.array([[0.0, 0.0, 0.0], [S, S, b - 1.0], [-S, -S, b - 1.0]])
     footer = (
         "Equilibria: "
-        + "E0=(0,0,0), E±=(±sqrt(c(b-1)), ±sqrt(c(b-1)), b-1)"
-        + f"; here a={a}, b={b}, c={c:.3f} => E±≈(±{S:.3f}, ±{S:.3f}, {b-1:.0f})"
+        + "E0=(0,0,0), E+/-=(+/-sqrt(c(b-1)), +/-sqrt(c(b-1)), b-1)"
+        + f"; here a={a}, b={b}, c={c:.3f} => E+/-~(+/-{S:.3f}, +/-{S:.3f}, {b-1:.0f})"
     )
     return plot_lorenz_fixed_points_table(
         ts,
@@ -264,8 +264,8 @@ def main() -> None:
     equilibria = np.array([[0.0, 0.0, 0.0], [S, S, b - 1.0], [-S, -S, b - 1.0]])
     footer = (
         "Equilibria: "
-        + "E0=(0,0,0), E±=(±sqrt(c(b-1)), ±sqrt(c(b-1)), b-1)"
-        + f"; here a={a}, b={b}, c={c:.3f} => E±≈(±{S:.3f}, ±{S:.3f}, {b-1:.0f})"
+        + "E0=(0,0,0), E+/-=(+/-sqrt(c(b-1)), +/-sqrt(c(b-1)), b-1)"
+        + f"; here a={a}, b={b}, c={c:.3f} => E+/-~(+/-{S:.3f}, +/-{S:.3f}, {b-1:.0f})"
     )
     fig_table = plot_lorenz_fixed_points_table(
         ts,

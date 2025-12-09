@@ -1,8 +1,8 @@
-"""Aggregator entry point for programming exercises 1 and 2.
+"""Aggregator entry point for programming exercises 1 through 5.
 
-Runs all original figures from experiment 1 and the new Runge–Kutta
-experiments from experiment 2. Produces a timestamped run directory with
-figures, an `answers.txt` for exercise 1, and composite PDFs.
+Runs everything from the explicit Euler baseline to explicit and adaptive RK,
+implicit Euler, and implicit Runge-Kutta. Produces a timestamped run
+directory with figures, an `answers.txt` for exercise 1, and composite PDFs.
 """
 
 from __future__ import annotations

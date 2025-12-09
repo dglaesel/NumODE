@@ -1,9 +1,9 @@
-"""Explicit time integrators.
+"""Time integration methods for the ODE exercises.
 
-This module originally provided only the explicit Euler method. It now also
-contains a generic explicit Runge–Kutta (ERK) integrator that is configured by
-its Butcher tableau ``(A, b, c)``. Both autonomous ``f(x)`` and
-non‑autonomous ``f(t, x)`` right‑hand sides are supported.
+Starts with explicit Euler and extends to generic explicit Runge-Kutta,
+an adaptive embedded RK pair, implicit Euler (general and linear), and
+generic implicit Runge-Kutta. Both autonomous ``f(x)`` and non-autonomous
+``f(t, x)`` right-hand sides are supported throughout.
 """
 
 from __future__ import annotations  # postpone evaluation of type hints (forward refs)
@@ -236,22 +236,22 @@ def implicitEuler_linear(
     return ImplicitEulerLinear(A, b, x0, T, tau).run()
 
 class ExplicitRungeKutta:
-    """Generic explicit Runge–Kutta (ERK) method.
+    """Generic explicit Runge-Kutta (ERK) method.
 
     Parameters
     ----------
     f
-        Right‑hand side. Can be autonomous ``f(x)`` or non‑autonomous
+        Right-hand side. Can be autonomous ``f(x)`` or non-autonomous
         ``f(t, x)``; the arity is detected automatically.
     x0
-        Initial value (1‑D array‑like; supports vector states).
+        Initial value (1-D array-like; supports vector states).
     T
         Final time ``T > 0``.
     tau
         Step size ``tau > 0``.
     A, b, c
-        Butcher coefficients. ``b`` and ``c`` must be 1‑D of equal length
-        ``s``. ``A`` must be an ``(s, s)`` strictly lower‑triangular matrix
+        Butcher coefficients. ``b`` and ``c`` must be 1-D of equal length
+        ``s``. ``A`` must be an ``(s, s)`` strictly lower-triangular matrix
         (zeros on and above the diagonal).
     """
 
@@ -359,7 +359,7 @@ def exRungeKutta(
 
 
 class EmbeddedRungeKuttaAdaptive:
-    """Adaptive explicit embedded Runge–Kutta method.
+    """Adaptive explicit embedded Runge-Kutta method.
 
     Uses a single strictly lower-triangular tableau ``A`` with two weight
     vectors ``b_high`` and ``b_low`` sharing the same nodes ``c``. On each
@@ -391,7 +391,7 @@ class EmbeddedRungeKuttaAdaptive:
         used for the error estimate.
     p_error
         Exponent base for the step-size controller. Typically ``p_error`` is
-        the order of the lower rule (e.g. 2 for Bogacki–Shampine 3(2)), so the
+        the order of the lower rule (e.g. 2 for Bogacki-Shampine 3(2)), so the
         exponent ``1 / (p_error + 1)`` is used.
     """
 
@@ -518,7 +518,7 @@ class EmbeddedRungeKuttaAdaptive:
 
             # Suggest next step
             if err <= tiny:
-                # error estimate vanished – grow conservatively
+                # error estimate vanished - grow conservatively
                 h_suggest = min(self.q * h, self.tau_max)
             else:
                 fac = (self.tol / err) ** (1.0 / pe)
@@ -578,7 +578,7 @@ def adaptive_embedded_rk(
 
 
 class ImplicitRungeKutta:
-    """Generic implicit Runge–Kutta (IRK) method.
+    """Generic implicit Runge-Kutta (IRK) method.
 
     Solves the stage equations
 

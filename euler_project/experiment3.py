@@ -1,7 +1,7 @@
 """Experiment set for programming exercise 3 (adaptive step-size control).
 
-Implements an embedded Runge–Kutta method with adaptive steps via a generic
-OOP solver. Uses the Bogacki–Shampine 3(2) pair for tasks b)–d).
+Implements an embedded Runge-Kutta method with adaptive steps via a generic
+OOP solver. Uses the Bogacki-Shampine 3(2) pair for tasks b)-d).
 
 This module is directly runnable via ``python -m euler_project.experiment3``.
 It produces a timestamped run directory under ``euler_project/runs/``.
@@ -37,7 +37,7 @@ from .problems import (
 Array = np.ndarray
 
 
-# --- Embedded RK: Bogacki–Shampine 3(2) --------------------------------------
+# --- Embedded RK: Bogacki-Shampine 3(2) --------------------------------------
 
 
 def _butcher_bogacki_shampine_32() -> Tuple[Array, Array, Array, Array, int]:
