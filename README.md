@@ -1,5 +1,12 @@
 # NumODE - Explicit and Implicit Runge-Kutta for ODEs
 
+Executive Summary: This repo is a teaching lab for solving ordinary differential
+equations in Python. It implements a small collection of time-stepping methods
+(explicit Euler, explicit and adaptive Runge-Kutta, implicit Euler, implicit
+Runge-Kutta) and applies them to textbook problems (logistic growth, Lorenz
+system, oscillators). Running the provided drivers generates plots and PDFs that
+compare methods, study stability/accuracy, and show adaptive step-size behavior.
+
 Programming exercises 1-5 in one place. The code now covers explicit Euler,
 explicit Runge-Kutta, adaptive embedded RK (Bogacki-Shampine 3(2)),
 implicit Euler (general and linear) and a generic implicit Runge-Kutta solver.
